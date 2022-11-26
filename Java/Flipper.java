@@ -1,54 +1,72 @@
 /*
  * Flipper
  *
+ * Flips an entered string with a simple subsitution cypher.
+ *
  * @copyright  2022 G J Barnard
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+// Import classes we need.
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 
+/**
+ * Flipper class.
+ * @author G J Barnard
+ */
 public class Flipper {
-    private InputStreamReader isr = null;
-    private BufferedReader br = null;
-    private HashMap<Character, Character> map = null; 
+    private InputStreamReader isr = null; // Stream to get the key presses from the keyboard.
+    private BufferedReader br = null; // Buffer to store the pressed keys from the input stream.
+    private HashMap<Character, Character> map = null; // Map to store the character to character relationship.
 
-    private static final boolean DEBUG = false;
-    private static final int DIFFERENCE = 4;
+    private static final boolean DEBUG = false; // Show the debug messages.  Static so recompile when change.
+    private static final int DIFFERENCE = 4; // How many characters to 'shift to the left' the characters we flip.
+
+    // Characters we flip, both strings must be the same length so that the combined tally of the two is even.
     private static final String LOWER = "abcdefghijklmnopqrstuvwxyz@*.";
     private static final String UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ&%#";
-    
-    public static void main(String args[]) {
-        Flipper us = new Flipper();
 
-        System.out.println("Flipped: " + us.flip("Flip   : "));
+    /**
+     * Main program entry point.
+     * @param args Not used.
+     */
+    public static void main(String args[]) {
+        Flipper us = new Flipper(); // Instantiate our class.
+
+        System.out.println("Flipped: " + us.flip("Flip   : ")); // Flip with the before and after string prefixes.
     }
 
+    /**
+     * Constructor to setup the input and create the character code map.
+     */
     public Flipper() {
-        this.isr = new InputStreamReader(System.in);
-        this.br = new BufferedReader(this.isr);
+        this.isr = new InputStreamReader(System.in); // Attach a stream to the system input.
+        this.br = new BufferedReader(this.isr); // Attach a buffer to store the pressed keys.
 
+        // Convert the string to characters we can access via an array index with a number.
         char[] lowerChars = LOWER.toCharArray();
         char[] upperChars = UPPER.toCharArray();
+        // Array indexes start at zero and not one, but the length is the actual number of characters.
         int lowerMax = lowerChars.length - 1;
-        int toIndex;
+        int fromIndex; // From character.
+        int toIndex; // To character.
 
+        // Confirm our logic for looping around the toIndex when its larger than the number of characters.
         if (Flipper.DEBUG) {
             for (int index = 0; index <= lowerMax; index++) {
                 toIndex = index + Flipper.DIFFERENCE;
                 if (toIndex > lowerMax) {
                     toIndex = (toIndex - 1) - lowerMax;
                 }
-
                 System.out.println(index + " -> " + toIndex);
             }
         }
         
-        int half = (lowerMax + 1) / 2;
-        int fromIndex;
-        int mapLength = lowerChars.length * 2;
-        this.map = new HashMap<>(mapLength);
+        int half = (lowerMax + 1) / 2;  // Find the mid point in the character string.
+        int mapLength = lowerChars.length * 2; // Work out how big the map will be.
+        this.map = new HashMap<>(mapLength);  // Construct the map, character to character.
         for (int index = 0; index <= half; index++) {
             fromIndex = index + Flipper.DIFFERENCE;
             if (fromIndex > lowerMax) {
@@ -58,7 +76,8 @@ public class Flipper {
             if (toIndex > lowerMax) {
                 toIndex = (toIndex - 1) - lowerMax;
             }
-            
+
+            // Check the mappings.
             if (Flipper.DEBUG) {
                 System.out.println(
                     index + ": " + lowerChars[fromIndex] + " -> " + lowerChars[toIndex] +
@@ -66,14 +85,14 @@ public class Flipper {
                 );
             }
             
-            // Add to map.
+            // Add the key value pairs to the map.  For example, a -> z and back again, z -> a.
             this.map.put(lowerChars[fromIndex], lowerChars[toIndex]);
             this.map.put(lowerChars[toIndex], lowerChars[fromIndex]);
             this.map.put(upperChars[fromIndex], upperChars[toIndex]);
             this.map.put(upperChars[toIndex], upperChars[fromIndex]);
         }
         
-        // Test map.
+        // Check that the map is what we intended.
         if (Flipper.DEBUG) {
             for (int index = 0; index < lowerChars.length; index++) {
                 System.out.println(
@@ -84,25 +103,61 @@ public class Flipper {
         }
     }
 
+    /**
+     * Flip the entered text.
+     * @param message What to show as the input question.
+     * @return 
+     */
     private String flip(String message) {
         System.out.print(message);
 
+        // Using a 'try / catch' block as reading key presses is an input output operation that can fail.
+        String input;
         try {
-            String input = br.readLine();
-
-            char[] inputChars = input.toCharArray();
-            Character theChar;
-            for (int index = 0; index < inputChars.length; index++) {
-                theChar = this.map.get(inputChars[index]);
-                if (theChar != null) {
-                    inputChars[index] = theChar.charValue();
-                }
-            }
-
-            return new String(inputChars);
-        } catch (java.io.IOException ioe) {
-            return ("Ops: " + ioe.getLocalizedMessage());
+            input = br.readLine(); // Read a line of text from the user.
+        } catch (java.io.IOException ioe) { // An error has happened when getting the text from the user.
+            // Tell the user what the error is.
+            System.out.println(); // New line after the message.
+            this.processError(ioe);
+            return ("");
         }
-       
+
+        /* Using a 'try / catch' block as pressing 'Ctrl-C' during input caused the 'input' to be null and
+           so the 'toCharArray()' call fails. */
+        char[] inputChars;
+        try {
+            // Convert the text from the user (string) into an array of indexable characters.
+            inputChars = input.toCharArray();
+        } catch (java.lang.NullPointerException npe) {
+            // Tell the user what the error is.
+            System.out.println();
+            this.processError(npe);
+            return ("");       
+        }
+
+        Character theChar; // Temporary store for the character in the 'type' we need it in from the map.
+
+        // Process each character in the input text from the user.
+        for (int index = 0; index < inputChars.length; index++) {
+            theChar = this.map.get(inputChars[index]); // Get the mapped character, key -> value.
+            if (theChar != null) { // If the character is mapped then flip, otherwise it will not be transposed.
+                /* Replace the entered character with the mapped one.  Being clear here with the Character to char
+                   type conversion.  Removing 'charValue()' call will still work. */
+                inputChars[index] = theChar.charValue();
+            }
+        }
+
+        return new String(inputChars); // Return the flipped entered text as a string we can output.
+    }
+
+    /**
+     * Tell the user what happened.
+     * @param ex The exception to process.
+     */
+    private void processError(java.lang.Exception ex) {
+        System.err.print("Ops! -> "); // For some reason string concatenation does not work here.
+        System.err.print(ex.getLocalizedMessage()); // What happened.
+        System.err.print(" @ ");                    // And.
+        System.err.println(ex.getStackTrace()[0]);  // Where.
     }
 }
