@@ -25,8 +25,8 @@ public class Flipper {
     private static final int DIFFERENCE = 4; // How many characters to 'shift to the left' the characters we flip.
 
     // Characters we flip, both strings must be the same length so that the combined tally of the two is even.
-    private static final String LOWER = "abcdefghijklmnopqrstuvwxyz@*.";
-    private static final String UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ&%#";
+    private static final String LOWER = "abcdefghijklmnopqrstuvwxyz@*.:";
+    private static final String UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ&%#;";
 
     /**
      * Main program entry point.
@@ -50,17 +50,19 @@ public class Flipper {
         char[] upperChars = UPPER.toCharArray();
         // Array indexes start at zero and not one, but the length is the actual number of characters.
         int lowerMax = lowerChars.length - 1;
+        // Ditto for indexing with the difference.
+        int difference = Flipper.DIFFERENCE - 1;
         int fromIndex; // From character.
         int toIndex; // To character.
 
         // Confirm our logic for looping around the toIndex when its larger than the number of characters.
         if (Flipper.DEBUG) {
             for (int index = 0; index <= lowerMax; index++) {
-                toIndex = index + Flipper.DIFFERENCE;
-                if (toIndex > lowerMax) {
-                    toIndex = (toIndex - 1) - lowerMax;
+                fromIndex = index + difference;
+                if (fromIndex > lowerMax) {
+                    fromIndex = fromIndex - lowerMax;
                 }
-                System.out.println(index + " -> " + toIndex);
+                System.out.println(index + " -> " + fromIndex);
             }
         }
         
@@ -68,11 +70,12 @@ public class Flipper {
         int mapLength = lowerChars.length * 2; // Work out how big the map will be.
         this.map = new HashMap<>(mapLength);  // Construct the map, character to character.
         for (int index = 0; index <= half; index++) {
-            fromIndex = index + Flipper.DIFFERENCE;
+            fromIndex = index + difference; // Shift.
             if (fromIndex > lowerMax) {
                 fromIndex = fromIndex - lowerMax;
             }
-            toIndex = (lowerMax - index) + Flipper.DIFFERENCE;
+
+            toIndex = (lowerMax - index) + difference; // Flip.
             if (toIndex > lowerMax) {
                 toIndex = (toIndex - 1) - lowerMax;
             }
@@ -80,8 +83,9 @@ public class Flipper {
             // Check the mappings.
             if (Flipper.DEBUG) {
                 System.out.println(
-                    index + ": " + lowerChars[fromIndex] + " -> " + lowerChars[toIndex] +
-                    " & " + upperChars[fromIndex] + " -> " + upperChars[toIndex]
+                    index + " (From: " + fromIndex + " To: " + toIndex + ")" +
+                    ": " + lowerChars[fromIndex] + " -> " + lowerChars[toIndex] + " -> " + lowerChars[fromIndex] +
+                    " & " + upperChars[fromIndex] + " -> " + upperChars[toIndex] + " -> " + upperChars[fromIndex]
                 );
             }
             
