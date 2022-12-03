@@ -1,7 +1,7 @@
 /*
  * Flipper
  *
- * Flips an entered string with a simple subsitution cypher.
+ * Flips an entered string with a simple substitution cypher.
  *
  * @copyright  2022 G J Barnard
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
