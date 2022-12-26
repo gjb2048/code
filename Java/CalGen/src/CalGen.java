@@ -34,14 +34,15 @@ public class CalGen {
         int currentMonth;
         int nextMonth;
         int currentPrintedDay;
-        int dmonths = 0;
+        int theMonths = 0;
     
         this.gc.setFirstDayOfWeek(Calendar.MONDAY);
         boolean startOnMonday = (this.gc.getFirstDayOfWeek() == Calendar.MONDAY);
+        this.gc.set(this.gc.get(Calendar.YEAR) + 1, 0, 1);
 
         nextMonth = gc.get(Calendar.MONTH);
         currentMonth = nextMonth - 1;
-        while (dmonths <= 12) {
+        while (theMonths <= 12) {
             for (currentPrintedDay = 1; currentPrintedDay < 8; currentPrintedDay++) {
                 if (currentMonth != nextMonth) {
                     if (currentPrintedDay != 1) {
@@ -60,7 +61,7 @@ public class CalGen {
                     }
                     currentPrintedDay = 1;
                     currentMonth = nextMonth;
-                    dmonths++;
+                    theMonths++;
                 }
 
                 currentDayOfWeek = this.gc.get(Calendar.DAY_OF_WEEK);
