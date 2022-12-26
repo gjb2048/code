@@ -14,25 +14,36 @@ import java.util.GregorianCalendar;
  */
 public class CalGen {
 
+    private GregorianCalendar gc = new GregorianCalendar();
+
+        
     /**
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        GregorianCalendar gc = new GregorianCalendar();
+        CalGen us = new CalGen();
+        
+        us.calendar();
+    }
+
+    public CalGen() {
+    }
+
+    public void calendar() {
         int currentDayOfWeek;
-        int monthChange;
-        int monthChange2;
+        int currentMonth;
+        int nextMonth;
         int currentPrintedDay;
         int dmonths = 0;
+    
+        this.gc.setFirstDayOfWeek(Calendar.MONDAY);
+        boolean startOnMonday = (this.gc.getFirstDayOfWeek() == Calendar.MONDAY);
 
-        gc.setFirstDayOfWeek(Calendar.MONDAY);
-        boolean startOnMonday = (gc.getFirstDayOfWeek() == Calendar.MONDAY);
-
-        monthChange2 = gc.get(Calendar.MONTH);
-        monthChange = monthChange2 - 1;
+        nextMonth = gc.get(Calendar.MONTH);
+        currentMonth = nextMonth - 1;
         while (dmonths <= 12) {
             for (currentPrintedDay = 1; currentPrintedDay < 8; currentPrintedDay++) {
-                if (monthChange != monthChange2) {
+                if (currentMonth != nextMonth) {
                     if (currentPrintedDay != 1) {
                         while (currentPrintedDay < 8) {
                             System.out.print(" -- ");
@@ -41,18 +52,18 @@ public class CalGen {
                         System.out.println();
                     }
                     System.out.println();
-                    System.out.println(getMonthText(gc.get(Calendar.MONTH)) + " " + gc.get(Calendar.YEAR));
+                    System.out.println(this.getMonthText(gc.get(Calendar.MONTH)) + " " + this.gc.get(Calendar.YEAR));
                     if (startOnMonday) {
                         System.out.println("Mon Tue Wed Thu Fri Sat Sun");
                     } else {
                         System.out.println("Sun Mon Tue Wed Thu Fri Sat");
                     }
                     currentPrintedDay = 1;
-                    monthChange = monthChange2;
+                    currentMonth = nextMonth;
                     dmonths++;
                 }
 
-                currentDayOfWeek = gc.get(Calendar.DAY_OF_WEEK);
+                currentDayOfWeek = this.gc.get(Calendar.DAY_OF_WEEK);
                 if (startOnMonday) {
                     currentDayOfWeek--;
                     if (currentDayOfWeek < 1) {
@@ -66,23 +77,23 @@ public class CalGen {
                 if (currentPrintedDay != currentDayOfWeek) {
                     System.out.print(" -- ");
                 } else {
-                    if (gc.get(Calendar.DAY_OF_MONTH) > 9) {
+                    if (this.gc.get(Calendar.DAY_OF_MONTH) > 9) {
                         System.out.print(" ");
                     } else {
                         System.out.print("  ");
                     }
-                    System.out.print(gc.get(Calendar.DAY_OF_MONTH) + " ");
-                    gc.add(Calendar.DAY_OF_MONTH, 1);
-                    monthChange2 = gc.get(Calendar.MONTH);
+                    System.out.print(this.gc.get(Calendar.DAY_OF_MONTH) + " ");
+                    this.gc.add(Calendar.DAY_OF_MONTH, 1);
+                    nextMonth = this.gc.get(Calendar.MONTH);
                 }
             }
             System.out.println();
 
             //System.out.println("Date = " + gc.toString()); 
-        }
+        }        
     }
-
-    public static String getMonthText(int dMonth) {
+    
+    private String getMonthText(int dMonth) {
         String retr;
 
         retr = switch (dMonth) {
