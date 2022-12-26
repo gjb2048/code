@@ -53,7 +53,20 @@ public class CalGen {
 
         System.out.println(this.getMonthText(gc.get(Calendar.MONTH)));
         if (this.startOnMonday) {
-            System.out.println("Mon Tue Wed Thu Fri Sat Sun");
+            this.day("Mon");
+            System.out.print(" ");
+            this.day("Tue");
+            System.out.print(" ");
+            this.day("Wed");
+            System.out.print(" ");
+            this.day("Thu");
+            System.out.print(" ");
+            this.day("Fri");
+            System.out.print(" ");
+            this.day("Sat");
+            System.out.print(" ");
+            this.day("Sun");
+            System.out.println();
         } else {
             System.out.println("Sun Mon Tue Wed Thu Fri Sat");
         }
@@ -70,14 +83,15 @@ public class CalGen {
                 //System.out.println("Date = MON: " + gc.get(Calendar.MONTH) + " DOM: " + gc.get(Calendar.DAY_OF_MONTH) +
                 //    " DOW: " + gc.get(Calendar.DAY_OF_WEEK) + " currentDayOfWeek = " + currentDayOfWeek + " currentPrintedDay = " + currentPrintedDay);
                 if (currentPrintedDay != currentDayOfWeek) {
-                    System.out.print(" -! ");
+                    this.day(" -! ");
                 } else {
                     if (this.gc.get(Calendar.DAY_OF_MONTH) > 9) {
                         System.out.print(" ");
                     } else {
                         System.out.print("  ");
                     }
-                    System.out.print(this.gc.get(Calendar.DAY_OF_MONTH) + " ");
+                    this.day("" + this.gc.get(Calendar.DAY_OF_MONTH));
+                    System.out.print(" ");
                     this.gc.add(Calendar.DAY_OF_MONTH, 1);
                     this.nextMonth = this.gc.get(Calendar.MONTH);
                 }
@@ -85,13 +99,21 @@ public class CalGen {
                     if (currentPrintedDay != 1) {
                         currentPrintedDay++;
                         while (currentPrintedDay < 8) {
-                            System.out.print(" -* ");
+                            this.day(" -* ");
                             currentPrintedDay++;
                         }
                     }
                 }
             }
             System.out.println();
+        }
+    }
+    
+    private void day(String day) {
+        if (day == null) {
+            System.out.print(this.gc.get(Calendar.DAY_OF_MONTH));
+        } else {
+            System.out.print(day);
         }
     }
 
