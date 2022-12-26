@@ -33,7 +33,7 @@ public class CalGen {
             + ".cal-row.nowrap {flex-wrap: nowrap; }"
             + ".cal-1 { flex-basis: 100%;  text-align: center; }"
             + ".cal-4 { flex-basis: 25%; }"
-            + ".cal-7 { flex-basis: calc(14.28% - 15px); text-align: end; }"
+            + ".cal-7 { flex-basis: 14.28%; text-align: end; }"
             + "* { font-family: sans-serif; }"
             + "</style>";
     private final String preend = "</head><body>";
@@ -139,7 +139,7 @@ public class CalGen {
                 //System.out.println("Date = MON: " + gc.get(Calendar.MONTH) + " DOM: " + gc.get(Calendar.DAY_OF_MONTH) +
                 //    " DOW: " + gc.get(Calendar.DAY_OF_WEEK) + " currentDayOfWeek = " + currentDayOfWeek + " currentPrintedDay = " + currentPrintedDay);
                 if (currentPrintedDay != currentDayOfWeek) {
-                    this.day(" -! ");
+                    this.day(" -! ", false);
                 } else {
                     if (this.gc.get(Calendar.DAY_OF_MONTH) > 9) {
                         System.out.print(" ");
@@ -155,7 +155,7 @@ public class CalGen {
                     if (currentPrintedDay != 1) {
                         currentPrintedDay++;
                         while (currentPrintedDay < 8) {
-                            this.day(" -* ");
+                            this.day(" -* ", false);
                             currentPrintedDay++;
                         }
                     }
@@ -168,12 +168,20 @@ public class CalGen {
     }
 
     private void day(String day) {
+        this.day(day, true);
+    }
+
+    private void day(String day, boolean dayToMarkup) {
         if (day == null) {
             System.out.print(this.gc.get(Calendar.DAY_OF_MONTH));
             this.markup.append("<div class=\"cal-7\">").append(this.gc.get(Calendar.DAY_OF_MONTH)).append("</div>");
         } else {
             System.out.print(day);
-            this.markup.append("<div class=\"cal-7\">").append(day).append("</div>");
+            this.markup.append("<div class=\"cal-7\">");
+            if (dayToMarkup) {
+                this.markup.append(day);
+            }
+            this.markup.append("</div>");
         }
     }
 
