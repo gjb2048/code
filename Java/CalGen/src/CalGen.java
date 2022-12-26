@@ -36,21 +36,22 @@ public class CalGen {
     }
 
     public void calendar() {
-        this.nextMonth = gc.get(Calendar.MONTH);
+        System.out.println(this.gc.get(Calendar.YEAR));
         for (int theMonths = 0; theMonths < 12; theMonths++) {
-            this.currentMonth = this.nextMonth;
-
-            this.month();
-
+            this.month(theMonths);
             System.out.println();
         }
     }
 
-    private void month() {
+    private void month(int theMonth) {
         int currentDayOfWeek;
         int currentPrintedDay;
 
-        System.out.println(this.getMonthText(gc.get(Calendar.MONTH)) + " " + this.gc.get(Calendar.YEAR));
+        this.gc.set(Calendar.MONTH, theMonth);
+        this.nextMonth = theMonth;
+        this.currentMonth = this.nextMonth;
+
+        System.out.println(this.getMonthText(gc.get(Calendar.MONTH)));
         if (this.startOnMonday) {
             System.out.println("Mon Tue Wed Thu Fri Sat Sun");
         } else {
