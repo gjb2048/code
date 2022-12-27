@@ -24,10 +24,9 @@ public class CalGen {
     private final boolean startOnMonday;
 
     private final FileOutputStream fout;
-    private final StringBuffer markup = new StringBuffer();
 
     // Temp internal HTML.
-    private final String prestart = "<!doctype html><html ><head>"
+    private final String prestart = "<!doctype html><html><head>"
             + "<style type=\"text/css\">"
             + ".cal-row {display: flex; flex-wrap: wrap; justify-content: space-between; margin: 10px; }"
             + ".cal-row.nowrap {flex-wrap: nowrap; }"
@@ -38,6 +37,26 @@ public class CalGen {
             + "</style>";
     private final String preend = "</head><body>";
     private final String post = "</body></html>";
+    private final StringBuffer markup = new StringBuffer();
+
+    // Temp pre markup.
+    private final String calMarkup = "<!doctype html><html><head>"
+            + "<style type=\"text/css\">"
+            + ".cal-row {display: flex; flex-wrap: wrap; justify-content: space-between; margin: 10px; }"
+            + ".cal-row.nowrap {flex-wrap: nowrap; }"
+            + ".cal-1 { flex-basis: 100%;  text-align: center; }"
+            + ".cal-4 { flex-basis: 25%; }"
+            + ".cal-7 { flex-basis: 14.28%; text-align: end; }"
+            + "* { font-family: sans-serif; }"
+            + "</style>"
+            + "<title>{{title}}</title>"
+            + "</head><body>";
+    private final char[] mpre = {'{', '{'};
+    private final char[] mpost = {'}', '}'};
+    private final FileOutputStream mout;
+    private final StringBuffer markupOut = new StringBuffer();
+    private char[] template;
+    
 
     /**
      * @param args the command line arguments
@@ -47,35 +66,95 @@ public class CalGen {
         CalGen us = new CalGen();
 
         us.calendar();
+        us.calendarTemplate();
     }
 
     public CalGen() throws FileNotFoundException {
         this.gc.setFirstDayOfWeek(Calendar.MONDAY);
         this.startOnMonday = (this.gc.getFirstDayOfWeek() == Calendar.MONDAY);
-        this.gc.set(this.gc.get(Calendar.YEAR) + 1, 0, 1);
+        
+        int theYear = this.gc.get(Calendar.YEAR) + 1;
+        
+        this.gc.set(theYear, 0, 1);
 
-        this.fout = new FileOutputStream("./cal.html");
+        this.fout = new FileOutputStream("./cala.html");
+
+        // Reset.
+        this.gc.set(theYear, 0, 1);
+        this.mout = new FileOutputStream("./calm.html");
     }
 
     public void calendar() throws IOException {
-        System.out.println(this.gc.get(Calendar.YEAR));
-
-        this.markup.append(this.prestart);
-        this.markup.append("<title>").append(this.gc.get(Calendar.YEAR)).append(" Calendar </title>");
-        this.markup.append(this.preend);
-        this.markup.append("<h1 style=\"text-align: center;\">").append(this.gc.get(Calendar.YEAR)).append(" Calendar").append("</h1>");
-
-        this.markup.append("<div class=\"cal-row\">");
-
-        for (int theMonths = 0; theMonths < 12; theMonths++) {
-            this.month(theMonths);
-            System.out.println();
+        try (this.fout) {
+            System.out.println(this.gc.get(Calendar.YEAR));
+            
+            this.markup.append(this.prestart);
+            this.markup.append("<title>").append(this.gc.get(Calendar.YEAR)).append(" Calendar</title>");
+            this.markup.append(this.preend);
+            this.markup.append("<h1 style=\"text-align: center;\">").append(this.gc.get(Calendar.YEAR)).append(" Calendar").append("</h1>");
+            
+            this.markup.append("<div class=\"cal-row\">");
+            
+            for (int theMonths = 0; theMonths < 12; theMonths++) {
+                this.month(theMonths);
+                System.out.println();
+            }
+            
+            this.markup.append("</div>");
+            
+            this.markup.append(this.post);
+            this.fout.write(this.markup.toString().getBytes());
         }
+    }
 
-        this.markup.append("</div>");
-
-        this.markup.append(this.post);
-        this.fout.write(this.markup.toString().getBytes());
+    public void calendarTemplate() throws IOException {
+        try (this.mout) {
+            this.template = this.calMarkup.toCharArray();
+            int currentIndex = 0;
+            
+            while (currentIndex < this.template.length) {
+                if ((this.template[currentIndex] == this.mpre[0]) && (this.template[currentIndex + 1]) == this.mpre[1]) {
+                    // Start token.
+                    currentIndex = currentIndex + 2;
+                    currentIndex = this.processToken(currentIndex);
+                } else {
+                    // Pass through.
+                    this.markupOut.append(this.template[currentIndex]);
+                    currentIndex++;
+                }
+            }
+            
+            this.mout.write(this.markupOut.toString().getBytes());
+        }
+    }
+    
+    private int processToken(int currentIndex) {
+        int end = this.template.length;
+        StringBuilder token = new StringBuilder();
+        while (currentIndex < end) {
+            if ((this.template[currentIndex] == this.mpost[0]) && (this.template[currentIndex + 1]) == this.mpost[1]) {
+                // End token.
+                currentIndex = currentIndex + 2;
+                end = currentIndex; // Exit the loop.
+            } else {
+                // Characters of the token.
+                token.append(this.template[currentIndex]);
+                currentIndex++;
+            }
+        }
+        this.processToken(token.toString());
+        
+        return currentIndex;
+    }
+    
+    private void processToken(String token) {
+        switch(token) {
+            case "title":
+                this.markupOut.append(this.gc.get(Calendar.YEAR)).append(" Calendar");
+                break;
+            default:
+                this.markupOut.append("<p>Error!</p>");
+        }
     }
 
     private void month(int theMonth) {
@@ -219,4 +298,6 @@ public class CalGen {
 
         return retr;
     }
+
+    
 }
