@@ -22,6 +22,7 @@ public class CalGen {
     private int currentMonth;
     private int nextMonth;
     private final boolean startOnMonday;
+    private int theYear;
 
     private final FileOutputStream fout;
 
@@ -39,7 +40,7 @@ public class CalGen {
     private final String post = "</body></html>";
     private final StringBuffer markup = new StringBuffer();
 
-    // Temp pre markup.
+    // Temp template markup.
     private final String calMarkup = "<!doctype html><html><head>"
             + "<style type=\"text/css\">"
             + ".cal-row {display: flex; flex-wrap: wrap; justify-content: space-between; margin: 10px; }"
@@ -50,13 +51,19 @@ public class CalGen {
             + "* { font-family: sans-serif; }"
             + "</style>"
             + "<title>{{title}}</title>"
-            + "</head><body>";
+            + "</head><body>"
+            + "<h1 style=\"text-align: center;\">{{title}}</h1>"
+            + "<div class=\"cal-row\">"
+            + "<div class=\"cal-4\">"
+            + "{{jan}}"
+            + "</div>"
+            + "</div>"
+            + "</body></html>";
     private final char[] mpre = {'{', '{'};
     private final char[] mpost = {'}', '}'};
     private final FileOutputStream mout;
     private final StringBuffer markupOut = new StringBuffer();
     private char[] template;
-    
 
     /**
      * @param args the command line arguments
@@ -72,46 +79,44 @@ public class CalGen {
     public CalGen() throws FileNotFoundException {
         this.gc.setFirstDayOfWeek(Calendar.MONDAY);
         this.startOnMonday = (this.gc.getFirstDayOfWeek() == Calendar.MONDAY);
-        
-        int theYear = this.gc.get(Calendar.YEAR) + 1;
-        
-        this.gc.set(theYear, 0, 1);
 
+        this.theYear = this.gc.get(Calendar.YEAR) + 1;
         this.fout = new FileOutputStream("./cala.html");
-
-        // Reset.
-        this.gc.set(theYear, 0, 1);
         this.mout = new FileOutputStream("./calm.html");
     }
 
-    public void calendar() throws IOException {
+    public void calendar() throws IOException, FileNotFoundException {
+        this.gc.set(theYear, 0, 1);
+
         try (this.fout) {
             System.out.println(this.gc.get(Calendar.YEAR));
-            
+
             this.markup.append(this.prestart);
             this.markup.append("<title>").append(this.gc.get(Calendar.YEAR)).append(" Calendar</title>");
             this.markup.append(this.preend);
             this.markup.append("<h1 style=\"text-align: center;\">").append(this.gc.get(Calendar.YEAR)).append(" Calendar").append("</h1>");
-            
+
             this.markup.append("<div class=\"cal-row\">");
-            
+
             for (int theMonths = 0; theMonths < 12; theMonths++) {
                 this.month(theMonths);
                 System.out.println();
             }
-            
+
             this.markup.append("</div>");
-            
+
             this.markup.append(this.post);
             this.fout.write(this.markup.toString().getBytes());
         }
     }
 
     public void calendarTemplate() throws IOException {
+        // Reset.
+        this.gc.set(theYear, 0, 1);
         try (this.mout) {
             this.template = this.calMarkup.toCharArray();
             int currentIndex = 0;
-            
+
             while (currentIndex < this.template.length) {
                 if ((this.template[currentIndex] == this.mpre[0]) && (this.template[currentIndex + 1]) == this.mpre[1]) {
                     // Start token.
@@ -123,11 +128,11 @@ public class CalGen {
                     currentIndex++;
                 }
             }
-            
+
             this.mout.write(this.markupOut.toString().getBytes());
         }
     }
-    
+
     private int processToken(int currentIndex) {
         int end = this.template.length;
         StringBuilder token = new StringBuilder();
@@ -143,14 +148,17 @@ public class CalGen {
             }
         }
         this.processToken(token.toString());
-        
+
         return currentIndex;
     }
-    
+
     private void processToken(String token) {
-        switch(token) {
+        switch (token) {
             case "title":
                 this.markupOut.append(this.gc.get(Calendar.YEAR)).append(" Calendar");
+                break;
+            case "jan":
+                this.monthTemplate(0);
                 break;
             default:
                 this.markupOut.append("<p>Error!</p>");
@@ -169,9 +177,10 @@ public class CalGen {
         this.markup.append("<div class=\"cal-row nowrap\">");
         this.markup.append("<div class=\"cal-1\">").append(this.getMonthText(gc.get(Calendar.MONTH))).append("</div>");
         this.markup.append("</div>");
-        this.markup.append("<div class=\"cal-row nowrap\">");
 
+        this.markup.append("<div class=\"cal-row nowrap\">");
         System.out.println(this.getMonthText(gc.get(Calendar.MONTH)));
+
         if (this.startOnMonday) {
             this.day("Mon");
             System.out.print(" ");
@@ -204,8 +213,11 @@ public class CalGen {
             System.out.println();
         }
         this.markup.append("</div>");
+
         while (this.currentMonth == this.nextMonth) {
+
             this.markup.append("<div class=\"cal-row nowrap\">");
+
             for (currentPrintedDay = 1; currentPrintedDay < 8; currentPrintedDay++) {
                 currentDayOfWeek = this.gc.get(Calendar.DAY_OF_WEEK);
                 if (this.startOnMonday) {
@@ -225,7 +237,7 @@ public class CalGen {
                     } else {
                         System.out.print("  ");
                     }
-                    this.day("" + this.gc.get(Calendar.DAY_OF_MONTH));
+                    this.day(this.gc.get(Calendar.DAY_OF_MONTH));
                     System.out.print(" ");
                     this.gc.add(Calendar.DAY_OF_MONTH, 1);
                     this.nextMonth = this.gc.get(Calendar.MONTH);
@@ -246,8 +258,80 @@ public class CalGen {
         this.markup.append("</div>");
     }
 
+    private void monthTemplate(int theMonth) {
+        int currentDayOfWeek;
+        int currentPrintedDay;
+
+        this.gc.set(Calendar.MONTH, theMonth);
+        this.nextMonth = theMonth;
+        this.currentMonth = this.nextMonth;
+
+        this.markupOut.append("<div class=\"cal-4\">");
+        this.markupOut.append("<div class=\"cal-row nowrap\">");
+        this.markupOut.append("<div class=\"cal-1\">").append(this.getMonthText(gc.get(Calendar.MONTH))).append("</div>");
+        this.markupOut.append("</div>");
+
+        this.markupOut.append("<div class=\"cal-row nowrap\">");
+        if (this.startOnMonday) {
+            this.dayTemplate("Mon");
+            this.dayTemplate("Tue");
+            this.dayTemplate("Wed");
+            this.dayTemplate("Thu");
+            this.dayTemplate("Fri");
+            this.dayTemplate("Sat");
+            this.dayTemplate("Sun");
+        } else {
+            this.dayTemplate("Sun");
+            this.dayTemplate("Mon");
+            this.dayTemplate("Tue");
+            this.dayTemplate("Wed");
+            this.dayTemplate("Thu");
+            this.dayTemplate("Fri");
+            this.dayTemplate("Sat");
+        }
+        this.markupOut.append("</div>");
+
+        while (this.currentMonth == this.nextMonth) {
+
+            this.markupOut.append("<div class=\"cal-row nowrap\">");
+
+            for (currentPrintedDay = 1; currentPrintedDay < 8; currentPrintedDay++) {
+                currentDayOfWeek = this.gc.get(Calendar.DAY_OF_WEEK);
+                if (this.startOnMonday) {
+                    currentDayOfWeek--;
+                    if (currentDayOfWeek < 1) {
+                        currentDayOfWeek = 7;
+                    }
+                }
+
+                if (currentPrintedDay != currentDayOfWeek) {
+                    this.dayTemplate("", false);
+                } else {
+                    this.dayTemplate(this.gc.get(Calendar.DAY_OF_MONTH));
+                    this.gc.add(Calendar.DAY_OF_MONTH, 1);
+                    this.nextMonth = this.gc.get(Calendar.MONTH);
+                }
+                if (this.currentMonth != this.nextMonth) {
+                    if (currentPrintedDay != 1) {
+                        currentPrintedDay++;
+                        while (currentPrintedDay < 8) {
+                            this.dayTemplate("", false);
+                            currentPrintedDay++;
+                        }
+                    }
+                }
+            }
+            this.markupOut.append("</div>");
+        }
+        this.markupOut.append("</div>");
+    }
+
     private void day(String day) {
         this.day(day, true);
+    }
+
+    private void day(Integer day) {
+        this.day(day.toString(), true);
     }
 
     private void day(String day, boolean dayToMarkup) {
@@ -261,6 +345,26 @@ public class CalGen {
                 this.markup.append(day);
             }
             this.markup.append("</div>");
+        }
+    }
+
+    private void dayTemplate(String day) {
+        this.dayTemplate(day, true);
+    }
+
+    private void dayTemplate(Integer day) {
+        this.dayTemplate(day.toString(), true);
+    }
+
+    private void dayTemplate(String day, boolean dayToMarkup) {
+        if (day == null) {
+            this.markupOut.append("<div class=\"cal-7\">").append(this.gc.get(Calendar.DAY_OF_MONTH)).append("</div>");
+        } else {
+            this.markupOut.append("<div class=\"cal-7\">");
+            if (dayToMarkup) {
+                this.markupOut.append(day);
+            }
+            this.markupOut.append("</div>");
         }
     }
 
@@ -299,5 +403,4 @@ public class CalGen {
         return retr;
     }
 
-    
 }
