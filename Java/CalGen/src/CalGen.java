@@ -67,9 +67,10 @@ public class CalGen {
             + "<div class=\"cal-row nowrap\">"
             + "{{monthdaynames-<div class=\"cal-7\">*</div>}}"
             + "</div>"
-            + "<div class=\"cal-row\">"
+            + "{{monthweek-<div class=\"cal-row\">!</div>-<div class=\"cal-7\">*</div>}}";
+            /*+ "<div class=\"cal-row\">"
             + "{{monthdays-<div class=\"cal-7\">*</div>}}"
-            + "</div>";
+            + "</div>";*/
     private char[] monthTemplate = null;
     
     private final char[] mpre = {'{', '{'};
