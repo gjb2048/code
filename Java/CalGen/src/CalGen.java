@@ -54,20 +54,31 @@ public class CalGen {
             + "</head><body>"
             + "<h1 style=\"text-align: center;\">{{calendartitle}}</h1>"
             + "<div class=\"cal-row\">"
-            + "<div class=\"cal-4\">"
             + "{{jan}}"
-            + "</div>"
+            + "{{feb}}"
+            + "{{mar}}"
+            + "{{apr}}"
+            + "{{may}}"
+            + "{{jun}}"
+            + "{{jul}}"
+            + "{{aug}}"
+            + "{{sep}}"
+            + "{{oct}}"
+            + "{{nov}}"
+            + "{{dec}}"
             + "</div>"
             + "</body></html>";
     private char[] calendarTemplate;
 
-    private final String monthMarkup = "<div class=\"cal-row nowrap\">"
-            + "<div class=\"cal-1\">{{monthtitle}}</div>"
+    private final String monthMarkup = "<div class=\"cal-4\">"
+            + "<div class=\"cal-row nowrap month\">"
+            + "<div class=\"cal-1 monthtitle\">{{monthtitle}}</div>"
             + "</div>"
-            + "<div class=\"cal-row nowrap\">"
+            + "<div class=\"cal-row nowrap monthdaynames\">"
             + "{{monthdaynames-<div class=\"cal-7\">*</div>}}"
             + "</div>"
-            + "{{monthweek-<div class=\"cal-row\">!</div>-<div class=\"cal-7\">*</div>}}";
+            + "{{monthweek-<div class=\"cal-row nowrap monthweek\">!</div>&<div class=\"cal-7 monthday\">*</div>}}"
+            + "</div>";
             /*+ "<div class=\"cal-row\">"
             + "{{monthdays-<div class=\"cal-7\">*</div>}}"
             + "</div>";*/
@@ -172,6 +183,39 @@ public class CalGen {
                 break;
             case "jan":
                 this.monthTemplate(0);
+                break;
+            case "feb":
+                this.monthTemplate(1);
+                break;
+            case "mar":
+                this.monthTemplate(2);
+                break;
+            case "apr":
+                this.monthTemplate(3);
+                break;
+            case "may":
+                this.monthTemplate(4);
+                break;
+            case "jun":
+                this.monthTemplate(5);
+                break;
+            case "jul":
+                this.monthTemplate(6);
+                break;
+            case "aug":
+                this.monthTemplate(7);
+                break;
+            case "sep":
+                this.monthTemplate(8);
+                break;
+            case "oct":
+                this.monthTemplate(9);
+                break;
+            case "nov":
+                this.monthTemplate(10);
+                break;
+            case "dec":
+                this.monthTemplate(11);
                 break;
             default:
                 this.markupOut.append("<p>Error!</p>");
@@ -289,7 +333,7 @@ public class CalGen {
         this.currentMonth = this.nextMonth;
 
         if (this.monthTemplate == null) {
-            this.monthTemplate = this.calMarkup.toCharArray();
+            this.monthTemplate = this.monthMarkup.toCharArray();
         }
             int currentIndex = 0;
 
@@ -305,6 +349,7 @@ public class CalGen {
                 }
             }
     }
+
     private int processMonthToken(int currentIndex) {
         int end = this.monthTemplate.length;
         StringBuilder token = new StringBuilder();
@@ -325,9 +370,23 @@ public class CalGen {
     }
 
     private void processMonthToken(String token) {
+        int dataIndex = token.indexOf('-');
+        String data = null;
+        if (dataIndex != -1) {
+            // We have data.
+            data = token.substring(dataIndex + 1, token.length());
+            token = token.substring(0, dataIndex);
+        }
+        
         switch (token) {
             case "monthtitle":
                 this.markupOut.append(this.getMonthText(gc.get(Calendar.MONTH)));
+                break;
+            case "monthdaynames":
+                this.monthDayNames(data);
+                break;
+            case "monthweek":
+                this.monthWeek(data);
                 break;
             default:
                 this.markupOut.append("<p>Error!</p>");
@@ -340,35 +399,57 @@ public class CalGen {
         this.markupOut.append("</div>");
     } */
     
-    private void monthDayNames() {
-        this.markupOut.append("<div class=\"cal-row nowrap\">");
+    private void monthDayNames(String data) {
+        // "{{monthdaynames-<div class=\"cal-7\">*</div>}}"
+        int starIndex = data.indexOf('*');
+        String pre = data.substring(0, starIndex);
+        String post = data.substring(starIndex + 1, data.length());
+
         if (this.startOnMonday) {
-            this.dayTemplate("Mon");
-            this.dayTemplate("Tue");
-            this.dayTemplate("Wed");
-            this.dayTemplate("Thu");
-            this.dayTemplate("Fri");
-            this.dayTemplate("Sat");
-            this.dayTemplate("Sun");
+            this.monthDay("Mon", pre, post);
+            this.monthDay("Tue", pre, post);
+            this.monthDay("Wed", pre, post);
+            this.monthDay("Thu", pre, post);
+            this.monthDay("Fri", pre, post);
+            this.monthDay("Sat", pre, post);
+            this.monthDay("Sun", pre, post);
         } else {
-            this.dayTemplate("Sun");
-            this.dayTemplate("Mon");
-            this.dayTemplate("Tue");
-            this.dayTemplate("Wed");
-            this.dayTemplate("Thu");
-            this.dayTemplate("Fri");
-            this.dayTemplate("Sat");
+            this.monthDay("Sun", pre, post);
+            this.monthDay("Mon", pre, post);
+            this.monthDay("Tue", pre, post);
+            this.monthDay("Wed", pre, post);
+            this.monthDay("Thu", pre, post);
+            this.monthDay("Fri", pre, post);
+            this.monthDay("Sat", pre, post);
         }
-        this.markupOut.append("</div>");
     }
     
-    private void monthDays() {
+    private void monthDay(Integer day, String pre, String post) {
+        this.monthDay(day.toString(), pre, post);
+    }
+
+    private void monthDay(String day, String pre, String post) {
+        this.markupOut.append(pre).append(day).append(post);
+    }
+    
+    private void monthWeek(String data) {
+        // "{{monthweek-<div class=\"cal-row nowrap monthweek\">!</div>&<div class=\"cal-7 monthday\">*</div>}}";
+        int exlamationIndex = data.indexOf('!');
+        int ampIndex = data.indexOf('&');
+        int starIndex = data.indexOf('*');
+
+        String weekPre = data.substring(0, exlamationIndex);
+        String weekPost = data.substring(exlamationIndex + 1, ampIndex);
+
+        String dayPre = data.substring(ampIndex + 1, starIndex);
+        String dayPost = data.substring(starIndex + 1, data.length());
+
         int currentDayOfWeek;
         int currentPrintedDay;
 
         while (this.currentMonth == this.nextMonth) {
 
-            this.markupOut.append("<div class=\"cal-row nowrap\">");
+            this.markupOut.append(weekPre);
 
             for (currentPrintedDay = 1; currentPrintedDay < 8; currentPrintedDay++) {
                 currentDayOfWeek = this.gc.get(Calendar.DAY_OF_WEEK);
@@ -380,9 +461,9 @@ public class CalGen {
                 }
 
                 if (currentPrintedDay != currentDayOfWeek) {
-                    this.dayTemplate("", false);
+                    this.monthDay("", dayPre, dayPost);
                 } else {
-                    this.dayTemplate(this.gc.get(Calendar.DAY_OF_MONTH));
+                    this.monthDay(this.gc.get(Calendar.DAY_OF_MONTH), dayPre, dayPost);
                     this.gc.add(Calendar.DAY_OF_MONTH, 1);
                     this.nextMonth = this.gc.get(Calendar.MONTH);
                 }
@@ -390,13 +471,13 @@ public class CalGen {
                     if (currentPrintedDay != 1) {
                         currentPrintedDay++;
                         while (currentPrintedDay < 8) {
-                            this.dayTemplate("", false);
+                            this.monthDay("", dayPre, dayPost);
                             currentPrintedDay++;
                         }
                     }
                 }
             }
-            this.markupOut.append("</div>");
+            this.markupOut.append(weekPost);
         }
     }
 
