@@ -22,7 +22,7 @@ public class CalGen {
     private int currentMonth;
     private int nextMonth;
     private final boolean startOnMonday;
-    private int theYear;
+    private final int theYear;
 
     private final FileOutputStream fout;
 
@@ -50,20 +50,32 @@ public class CalGen {
             + ".cal-7 { flex-basis: 14.28%; text-align: end; }"
             + "* { font-family: sans-serif; }"
             + "</style>"
-            + "<title>{{title}}</title>"
+            + "<title>{{calendartitle}}</title>"
             + "</head><body>"
-            + "<h1 style=\"text-align: center;\">{{title}}</h1>"
+            + "<h1 style=\"text-align: center;\">{{calendartitle}}</h1>"
             + "<div class=\"cal-row\">"
             + "<div class=\"cal-4\">"
             + "{{jan}}"
             + "</div>"
             + "</div>"
             + "</body></html>";
+    private char[] calendarTemplate;
+
+    private final String monthMarkup = "<div class=\"cal-row nowrap\">"
+            + "<div class=\"cal-1\">{{monthtitle}}</div>"
+            + "</div>"
+            + "<div class=\"cal-row nowrap\">"
+            + "{{monthdaynames-<div class=\"cal-7\">*</div>}}"
+            + "</div>"
+            + "<div class=\"cal-row\">"
+            + "{{monthdays-<div class=\"cal-7\">*</div>}}"
+            + "</div>";
+    private char[] monthTemplate = null;
+    
     private final char[] mpre = {'{', '{'};
     private final char[] mpost = {'}', '}'};
     private final FileOutputStream mout;
     private final StringBuffer markupOut = new StringBuffer();
-    private char[] template;
 
     /**
      * @param args the command line arguments
@@ -114,17 +126,17 @@ public class CalGen {
         // Reset.
         this.gc.set(theYear, 0, 1);
         try (this.mout) {
-            this.template = this.calMarkup.toCharArray();
+            this.calendarTemplate = this.calMarkup.toCharArray();
             int currentIndex = 0;
 
-            while (currentIndex < this.template.length) {
-                if ((this.template[currentIndex] == this.mpre[0]) && (this.template[currentIndex + 1]) == this.mpre[1]) {
+            while (currentIndex < this.calendarTemplate.length) {
+                if ((this.calendarTemplate[currentIndex] == this.mpre[0]) && (this.calendarTemplate[currentIndex + 1]) == this.mpre[1]) {
                     // Start token.
                     currentIndex = currentIndex + 2;
-                    currentIndex = this.processToken(currentIndex);
+                    currentIndex = this.processCalendarToken(currentIndex);
                 } else {
                     // Pass through.
-                    this.markupOut.append(this.template[currentIndex]);
+                    this.markupOut.append(this.calendarTemplate[currentIndex]);
                     currentIndex++;
                 }
             }
@@ -133,28 +145,28 @@ public class CalGen {
         }
     }
 
-    private int processToken(int currentIndex) {
-        int end = this.template.length;
+    private int processCalendarToken(int currentIndex) {
+        int end = this.calendarTemplate.length;
         StringBuilder token = new StringBuilder();
         while (currentIndex < end) {
-            if ((this.template[currentIndex] == this.mpost[0]) && (this.template[currentIndex + 1]) == this.mpost[1]) {
+            if ((this.calendarTemplate[currentIndex] == this.mpost[0]) && (this.calendarTemplate[currentIndex + 1]) == this.mpost[1]) {
                 // End token.
                 currentIndex = currentIndex + 2;
                 end = currentIndex; // Exit the loop.
             } else {
                 // Characters of the token.
-                token.append(this.template[currentIndex]);
+                token.append(this.calendarTemplate[currentIndex]);
                 currentIndex++;
             }
         }
-        this.processToken(token.toString());
+        this.processCalendarToken(token.toString());
 
         return currentIndex;
     }
 
-    private void processToken(String token) {
+    private void processCalendarToken(String token) {
         switch (token) {
-            case "title":
+            case "calendartitle":
                 this.markupOut.append(this.gc.get(Calendar.YEAR)).append(" Calendar");
                 break;
             case "jan":
@@ -214,9 +226,8 @@ public class CalGen {
         }
         this.markup.append("</div>");
 
+        this.markup.append("<div class=\"cal-row\">");
         while (this.currentMonth == this.nextMonth) {
-
-            this.markup.append("<div class=\"cal-row nowrap\">");
 
             for (currentPrintedDay = 1; currentPrintedDay < 8; currentPrintedDay++) {
                 currentDayOfWeek = this.gc.get(Calendar.DAY_OF_WEEK);
@@ -230,7 +241,8 @@ public class CalGen {
                 //System.out.println("Date = MON: " + gc.get(Calendar.MONTH) + " DOM: " + gc.get(Calendar.DAY_OF_MONTH) +
                 //    " DOW: " + gc.get(Calendar.DAY_OF_WEEK) + " currentDayOfWeek = " + currentDayOfWeek + " currentPrintedDay = " + currentPrintedDay);
                 if (currentPrintedDay != currentDayOfWeek) {
-                    this.day(" -! ", false);
+                    this.day("");
+                    System.out.print(" -! ");
                 } else {
                     if (this.gc.get(Calendar.DAY_OF_MONTH) > 9) {
                         System.out.print(" ");
@@ -246,31 +258,88 @@ public class CalGen {
                     if (currentPrintedDay != 1) {
                         currentPrintedDay++;
                         while (currentPrintedDay < 8) {
-                            this.day(" -* ", false);
+                            this.day("");
+                            System.out.print(" -* ");
                             currentPrintedDay++;
                         }
                     }
                 }
             }
             System.out.println();
-            this.markup.append("</div>");
         }
+        this.markup.append("</div>");
+        this.markup.append("</div>");
+    }
+
+    private void day(Integer day) {
+        this.day(day.toString());
+    }
+
+    private void day(String day) {
+        System.out.print(day);
+        this.markup.append("<div class=\"cal-7\">");
+        this.markup.append(day);
         this.markup.append("</div>");
     }
 
     private void monthTemplate(int theMonth) {
-        int currentDayOfWeek;
-        int currentPrintedDay;
-
         this.gc.set(Calendar.MONTH, theMonth);
         this.nextMonth = theMonth;
         this.currentMonth = this.nextMonth;
 
-        this.markupOut.append("<div class=\"cal-4\">");
+        if (this.monthTemplate == null) {
+            this.monthTemplate = this.calMarkup.toCharArray();
+        }
+            int currentIndex = 0;
+
+            while (currentIndex < this.monthTemplate.length) {
+                if ((this.monthTemplate[currentIndex] == this.mpre[0]) && (this.monthTemplate[currentIndex + 1]) == this.mpre[1]) {
+                    // Start token.
+                    currentIndex = currentIndex + 2;
+                    currentIndex = this.processMonthToken(currentIndex);
+                } else {
+                    // Pass through.
+                    this.markupOut.append(this.monthTemplate[currentIndex]);
+                    currentIndex++;
+                }
+            }
+    }
+    private int processMonthToken(int currentIndex) {
+        int end = this.monthTemplate.length;
+        StringBuilder token = new StringBuilder();
+        while (currentIndex < end) {
+            if ((this.monthTemplate[currentIndex] == this.mpost[0]) && (this.monthTemplate[currentIndex + 1]) == this.mpost[1]) {
+                // End token.
+                currentIndex = currentIndex + 2;
+                end = currentIndex; // Exit the loop.
+            } else {
+                // Characters of the token.
+                token.append(this.monthTemplate[currentIndex]);
+                currentIndex++;
+            }
+        }
+        this.processMonthToken(token.toString());
+
+        return currentIndex;
+    }
+
+    private void processMonthToken(String token) {
+        switch (token) {
+            case "monthtitle":
+                this.markupOut.append(this.getMonthText(gc.get(Calendar.MONTH)));
+                break;
+            default:
+                this.markupOut.append("<p>Error!</p>");
+        }
+    }
+
+    /* private void monthTitle() {
         this.markupOut.append("<div class=\"cal-row nowrap\">");
         this.markupOut.append("<div class=\"cal-1\">").append(this.getMonthText(gc.get(Calendar.MONTH))).append("</div>");
         this.markupOut.append("</div>");
-
+    } */
+    
+    private void monthDayNames() {
         this.markupOut.append("<div class=\"cal-row nowrap\">");
         if (this.startOnMonday) {
             this.dayTemplate("Mon");
@@ -290,6 +359,11 @@ public class CalGen {
             this.dayTemplate("Sat");
         }
         this.markupOut.append("</div>");
+    }
+    
+    private void monthDays() {
+        int currentDayOfWeek;
+        int currentPrintedDay;
 
         while (this.currentMonth == this.nextMonth) {
 
@@ -322,29 +396,6 @@ public class CalGen {
                 }
             }
             this.markupOut.append("</div>");
-        }
-        this.markupOut.append("</div>");
-    }
-
-    private void day(String day) {
-        this.day(day, true);
-    }
-
-    private void day(Integer day) {
-        this.day(day.toString(), true);
-    }
-
-    private void day(String day, boolean dayToMarkup) {
-        if (day == null) {
-            System.out.print(this.gc.get(Calendar.DAY_OF_MONTH));
-            this.markup.append("<div class=\"cal-7\">").append(this.gc.get(Calendar.DAY_OF_MONTH)).append("</div>");
-        } else {
-            System.out.print(day);
-            this.markup.append("<div class=\"cal-7\">");
-            if (dayToMarkup) {
-                this.markup.append(day);
-            }
-            this.markup.append("</div>");
         }
     }
 
