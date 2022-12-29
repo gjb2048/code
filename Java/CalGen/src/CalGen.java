@@ -24,30 +24,16 @@ public class CalGen {
     private final boolean startOnMonday;
     private final int theYear;
 
-    private final FileOutputStream fout;
-
-    // Temp internal HTML.
-    private final String prestart = "<!doctype html><html><head>"
-            + "<style type=\"text/css\">"
-            + ".cal-row {display: flex; flex-wrap: wrap; justify-content: space-between; margin: 10px; }"
-            + ".cal-row.nowrap {flex-wrap: nowrap; }"
-            + ".cal-1 { flex-basis: 100%;  text-align: center; }"
-            + ".cal-4 { flex-basis: 25%; }"
-            + ".cal-7 { flex-basis: 14.28%; text-align: end; }"
-            + "* { font-family: sans-serif; }"
-            + "</style>";
-    private final String preend = "</head><body>";
-    private final String post = "</body></html>";
-    private final StringBuffer markup = new StringBuffer();
-
     // Temp template markup.
     private final String calMarkup = "<!doctype html><html><head>"
             + "<style type=\"text/css\">"
-            + ".cal-row {display: flex; flex-wrap: wrap; justify-content: space-between; margin: 10px; }"
+            + ".cal-row {display: flex; flex-wrap: wrap; justify-content: space-evenly; margin: 10px; }"
             + ".cal-row.nowrap {flex-wrap: nowrap; }"
             + ".cal-1 { flex-basis: 100%; }"
             + ".cal-4 { flex-basis: 25%; }"
-            + ".cal-7 { flex-basis: 14.28%; }"
+            + ".cal-7 { flex-basis: 14.28%; margin-left: 2px; margin-right: 2px; }"
+            + ".cal-7:first-child { margin-left: 0; }"
+            + ".cal-7:first-child { margin-right: 0; }"
             + ".cal-img { max-width: 100%; height: auto; }"
             + ".monthdayname, .monthday { text-align: end; }"
             + "h1, .monthtitle { text-align: center; }"
@@ -108,32 +94,18 @@ public class CalGen {
         this.startOnMonday = (this.gc.getFirstDayOfWeek() == Calendar.MONDAY);
 
         this.theYear = this.gc.get(Calendar.YEAR) + 1;
-        this.fout = new FileOutputStream("./cala.html");
         this.mout = new FileOutputStream("./calm.html");
     }
 
     public void calendar() throws IOException, FileNotFoundException {
         this.gc.set(theYear, 0, 1);
 
-        try (this.fout) {
-            System.out.println(this.gc.get(Calendar.YEAR));
+        System.out.println(this.gc.get(Calendar.YEAR));
 
-            this.markup.append(this.prestart);
-            this.markup.append("<title>").append(this.gc.get(Calendar.YEAR)).append(" Calendar</title>");
-            this.markup.append(this.preend);
-            this.markup.append("<h1 style=\"text-align: center;\">").append(this.gc.get(Calendar.YEAR)).append(" Calendar").append("</h1>");
 
-            this.markup.append("<div class=\"cal-row\">");
-
-            for (int theMonths = 0; theMonths < 12; theMonths++) {
-                this.month(theMonths);
-                System.out.println();
-            }
-
-            this.markup.append("</div>");
-
-            this.markup.append(this.post);
-            this.fout.write(this.markup.toString().getBytes());
+        for (int theMonths = 0; theMonths < 12; theMonths++) {
+            this.month(theMonths);
+            System.out.println();
         }
     }
 
@@ -145,12 +117,6 @@ public class CalGen {
         this.nextMonth = theMonth;
         this.currentMonth = this.nextMonth;
 
-        this.markup.append("<div class=\"cal-4\">");
-        this.markup.append("<div class=\"cal-row nowrap\">");
-        this.markup.append("<div class=\"cal-1\">").append(this.getMonthText(gc.get(Calendar.MONTH))).append("</div>");
-        this.markup.append("</div>");
-
-        this.markup.append("<div class=\"cal-row nowrap\">");
         System.out.println(this.getMonthText(gc.get(Calendar.MONTH)));
 
         if (this.startOnMonday) {
@@ -184,9 +150,7 @@ public class CalGen {
             this.day("Sat");
             System.out.println();
         }
-        this.markup.append("</div>");
 
-        this.markup.append("<div class=\"cal-row\">");
         while (this.currentMonth == this.nextMonth) {
 
             for (currentPrintedDay = 1; currentPrintedDay < 8; currentPrintedDay++) {
@@ -198,8 +162,6 @@ public class CalGen {
                     }
                 }
 
-                //System.out.println("Date = MON: " + gc.get(Calendar.MONTH) + " DOM: " + gc.get(Calendar.DAY_OF_MONTH) +
-                //    " DOW: " + gc.get(Calendar.DAY_OF_WEEK) + " currentDayOfWeek = " + currentDayOfWeek + " currentPrintedDay = " + currentPrintedDay);
                 if (currentPrintedDay != currentDayOfWeek) {
                     this.day("");
                     System.out.print(" -! ");
@@ -227,8 +189,6 @@ public class CalGen {
             }
             System.out.println();
         }
-        this.markup.append("</div>");
-        this.markup.append("</div>");
     }
 
     private void day(Integer day) {
@@ -237,9 +197,6 @@ public class CalGen {
 
     private void day(String day) {
         System.out.print(day);
-        this.markup.append("<div class=\"cal-7\">");
-        this.markup.append(day);
-        this.markup.append("</div>");
     }
 
     public void calendarTemplate() throws IOException {
