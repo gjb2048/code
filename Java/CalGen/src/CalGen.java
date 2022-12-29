@@ -87,6 +87,8 @@ public class CalGen {
 
         us.calendar();
         us.calendarTemplate();
+
+        //us.fileTest();
     }
 
     public CalGen() throws FileNotFoundException {
@@ -95,6 +97,25 @@ public class CalGen {
 
         this.theYear = this.gc.get(Calendar.YEAR) + 1;
         this.mout = new FileOutputStream("./calm.html");
+    }
+
+    public String fileTest() throws FileNotFoundException, IOException {
+        // Ref: https://stackoverflow.com/questions/21980090/javas-randomaccessfile-eofexception
+        java.io.File file = new java.io.File("CalendarTemplate.txt");
+        System.out.println(file.length());
+        
+        char[] buffer = new char[(int) file.length()];
+        
+        java.io.FileInputStream fin = new java.io.FileInputStream(file);
+        java.io.InputStreamReader fr = new java.io.InputStreamReader(fin, "UTF-8");
+        fr.read(buffer);
+        StringBuilder sb = new StringBuilder();
+        
+        sb.append(buffer);
+        
+        System.out.println(sb.toString());
+        
+        return sb.toString();
     }
 
     public void calendar() throws IOException, FileNotFoundException {
@@ -203,7 +224,8 @@ public class CalGen {
         // Reset.
         this.gc.set(theYear, 0, 1);
         try (this.mout) {
-            this.calendarTemplate = this.calMarkup.toCharArray();
+            //this.calendarTemplate = this.calMarkup.toCharArray();
+            this.calendarTemplate = this.fileTest().toCharArray();
             int currentIndex = 0;
 
             while (currentIndex < this.calendarTemplate.length) {

@@ -1,0 +1,76 @@
+<!doctype html>
+<html>
+    <head>
+        <style type="text/css">
+            .cal-row {
+                display: flex; 
+                flex-wrap: wrap;
+                justify-content: 
+                space-evenly; margin: 10px;
+            }
+
+            .cal-row.nowrap {
+                flex-wrap: nowrap;
+            }
+
+            .cal-1 {
+                flex-basis: 100%;
+            }
+
+            .cal-4 {
+                flex-basis: 25%;
+            }
+    
+            .cal-7 {
+                flex-basis: 14.28%;
+                margin-left: 2px;
+                margin-right: 2px;
+            }
+
+            .cal-7:first-child {
+                margin-left: 0;
+            }
+
+            .cal-7:first-child {
+                margin-right: 0;
+            }
+
+            .cal-img {
+                height: auto;
+                max-width: 100%; 
+            }
+
+            .monthdayname,
+            .monthday {
+                text-align: end;
+            }
+
+            h1,
+           .monthtitle {
+                text-align: center;
+            }
+
+            * {
+                font-family: sans-serif;
+            }
+        </style>
+        <title>{{calendartitle}}</title>
+    </head>
+    <body>
+        <h1>{{calendartitle}}</h1>
+        <div class="cal-row">
+            {{jan-Jan_760D_3389_sRGB.webp&Female mallard duck on ice}}
+            {{feb-Feb_760D_0509_sRGB.webp&Pigeon looking at the camera standing on a fence}}
+            {{mar-Mar_760D_5005_sRGB.webp&Cygnet in the sun}}
+            {{apr-Apr_760D_8255_sRGB.webp&Mallard duckling}}
+            {{may-May_760D_4222_sRGB.webp&Midland Pullman Train, Class 43 version}}
+            {{jun-Jun_760D_4905_sRGB.webp&Beer beach, Devon}}
+            {{jul-Jul_760D_4809_sRGB.webp&Moorhen}}
+            {{aug-Aug_760D_6863_sRGB.webp&Male mallard duck}}
+            {{sep-Sep_760D_4164_sRGB.webp&Great Western Railway Class 43, 43198, Driver Stan Martin 25th June 1950 - 6th November 2004}}
+            {{oct-Oct_760D_0803_sRGB.webp&White swan looking at its reflection in the water}}
+            {{nov-Nov_760D_3724_sRGB.webp&Chaffinch on a fence}}
+            {{dec-Dec_760D_3366_sRGB.webp&Robin looking skywards}}
+        </div>
+    </body>
+</html>
