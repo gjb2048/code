@@ -45,43 +45,46 @@ public class CalGen {
             + "<style type=\"text/css\">"
             + ".cal-row {display: flex; flex-wrap: wrap; justify-content: space-between; margin: 10px; }"
             + ".cal-row.nowrap {flex-wrap: nowrap; }"
-            + ".cal-1 { flex-basis: 100%;  text-align: center; }"
+            + ".cal-1 { flex-basis: 100%; }"
             + ".cal-4 { flex-basis: 25%; }"
-            + ".cal-7 { flex-basis: 14.28%; text-align: end; }"
+            + ".cal-7 { flex-basis: 14.28%; }"
+            + ".cal-img { max-width: 100%; height: auto; }"
+            + ".monthdayname, .monthday { text-align: end; }"
+            + "h1, .monthtitle { text-align: center; }"
             + "* { font-family: sans-serif; }"
             + "</style>"
             + "<title>{{calendartitle}}</title>"
             + "</head><body>"
-            + "<h1 style=\"text-align: center;\">{{calendartitle}}</h1>"
+            + "<h1>{{calendartitle}}</h1>"
             + "<div class=\"cal-row\">"
-            + "{{jan}}"
-            + "{{feb}}"
-            + "{{mar}}"
-            + "{{apr}}"
-            + "{{may}}"
-            + "{{jun}}"
-            + "{{jul}}"
-            + "{{aug}}"
-            + "{{sep}}"
-            + "{{oct}}"
-            + "{{nov}}"
-            + "{{dec}}"
+            + "{{jan-Jan_760D_3389_sRGB.webp&Female mallard duck on ice}}"
+            + "{{feb-Feb_760D_0509_sRGB.webp&Pigeon looking at the camera standing on a fence}}"
+            + "{{mar-Mar_760D_5005_sRGB.webp&Cygnet in the sun}}"
+            + "{{apr-Apr_760D_8255_sRGB.webp&Mallard duckling}}"
+            + "{{may-May_760D_4222_sRGB.webp&Midland Pullman Train, Class 43 version}}"
+            + "{{jun-Jun_760D_4905_sRGB.webp&Beer beach, Devon}}"
+            + "{{jul-Jul_760D_4809_sRGB.webp&Moorhen}}"
+            + "{{aug-Aug_760D_6863_sRGB.webp&Male mallard duck}}"
+            + "{{sep-Sep_760D_4164_sRGB.webp&Great Western Railway Class 43, 43198, Driver Stan Martin 25th June 1950 - 6th November 2004}}"
+            + "{{oct-Oct_760D_0803_sRGB.webp&White swan looking at its reflection in the water}}"
+            + "{{nov-Nov_760D_3724_sRGB.webp&Chaffinch on a fence}}"
+            + "{{dec-Dec_760D_3366_sRGB.webp&Robin looking skywards}}"
             + "</div>"
             + "</body></html>";
     private char[] calendarTemplate;
 
-    private final String monthMarkup = "<div class=\"cal-4\">"
-            + "<div class=\"cal-row nowrap month\">"
+    private final String monthMarkup = "<div class=\"cal-4 month\">"
+            + "<div class=\"cal-row nowrap monthheader\">"
             + "<div class=\"cal-1 monthtitle\">{{monthtitle}}</div>"
             + "</div>"
+            + "<div class=\"cal-row monthimagewrapper\">"
+            + "<img class=\"cal-1 cal-img monthimage\" src=\"{{monthimage}}\" alt=\"{{monthimagedescription}}\">"
+            + "</div>"
             + "<div class=\"cal-row nowrap monthdaynames\">"
-            + "{{monthdaynames-<div class=\"cal-7\">*</div>}}"
+            + "{{monthdaynames-<div class=\"cal-7 monthdayname\">*</div>}}"
             + "</div>"
             + "{{monthweek-<div class=\"cal-row nowrap monthweek\">!</div>&<div class=\"cal-7 monthday\">*</div>}}"
             + "</div>";
-            /*+ "<div class=\"cal-row\">"
-            + "{{monthdays-<div class=\"cal-7\">*</div>}}"
-            + "</div>";*/
     private char[] monthTemplate = null;
     
     private final char[] mpre = {'{', '{'};
@@ -131,94 +134,6 @@ public class CalGen {
 
             this.markup.append(this.post);
             this.fout.write(this.markup.toString().getBytes());
-        }
-    }
-
-    public void calendarTemplate() throws IOException {
-        // Reset.
-        this.gc.set(theYear, 0, 1);
-        try (this.mout) {
-            this.calendarTemplate = this.calMarkup.toCharArray();
-            int currentIndex = 0;
-
-            while (currentIndex < this.calendarTemplate.length) {
-                if ((this.calendarTemplate[currentIndex] == this.mpre[0]) && (this.calendarTemplate[currentIndex + 1]) == this.mpre[1]) {
-                    // Start token.
-                    currentIndex = currentIndex + 2;
-                    currentIndex = this.processCalendarToken(currentIndex);
-                } else {
-                    // Pass through.
-                    this.markupOut.append(this.calendarTemplate[currentIndex]);
-                    currentIndex++;
-                }
-            }
-
-            this.mout.write(this.markupOut.toString().getBytes());
-        }
-    }
-
-    private int processCalendarToken(int currentIndex) {
-        int end = this.calendarTemplate.length;
-        StringBuilder token = new StringBuilder();
-        while (currentIndex < end) {
-            if ((this.calendarTemplate[currentIndex] == this.mpost[0]) && (this.calendarTemplate[currentIndex + 1]) == this.mpost[1]) {
-                // End token.
-                currentIndex = currentIndex + 2;
-                end = currentIndex; // Exit the loop.
-            } else {
-                // Characters of the token.
-                token.append(this.calendarTemplate[currentIndex]);
-                currentIndex++;
-            }
-        }
-        this.processCalendarToken(token.toString());
-
-        return currentIndex;
-    }
-
-    private void processCalendarToken(String token) {
-        switch (token) {
-            case "calendartitle":
-                this.markupOut.append(this.gc.get(Calendar.YEAR)).append(" Calendar");
-                break;
-            case "jan":
-                this.monthTemplate(0);
-                break;
-            case "feb":
-                this.monthTemplate(1);
-                break;
-            case "mar":
-                this.monthTemplate(2);
-                break;
-            case "apr":
-                this.monthTemplate(3);
-                break;
-            case "may":
-                this.monthTemplate(4);
-                break;
-            case "jun":
-                this.monthTemplate(5);
-                break;
-            case "jul":
-                this.monthTemplate(6);
-                break;
-            case "aug":
-                this.monthTemplate(7);
-                break;
-            case "sep":
-                this.monthTemplate(8);
-                break;
-            case "oct":
-                this.monthTemplate(9);
-                break;
-            case "nov":
-                this.monthTemplate(10);
-                break;
-            case "dec":
-                this.monthTemplate(11);
-                break;
-            default:
-                this.markupOut.append("<p>Error!</p>");
         }
     }
 
@@ -327,7 +242,110 @@ public class CalGen {
         this.markup.append("</div>");
     }
 
-    private void monthTemplate(int theMonth) {
+    public void calendarTemplate() throws IOException {
+        // Reset.
+        this.gc.set(theYear, 0, 1);
+        try (this.mout) {
+            this.calendarTemplate = this.calMarkup.toCharArray();
+            int currentIndex = 0;
+
+            while (currentIndex < this.calendarTemplate.length) {
+                if ((this.calendarTemplate[currentIndex] == this.mpre[0]) && (this.calendarTemplate[currentIndex + 1]) == this.mpre[1]) {
+                    // Start token.
+                    currentIndex = currentIndex + 2;
+                    currentIndex = this.processCalendarToken(currentIndex);
+                } else {
+                    // Pass through.
+                    this.markupOut.append(this.calendarTemplate[currentIndex]);
+                    currentIndex++;
+                }
+            }
+
+            this.mout.write(this.markupOut.toString().getBytes());
+        }
+    }
+
+    private int processCalendarToken(int currentIndex) {
+        int end = this.calendarTemplate.length;
+        StringBuilder token = new StringBuilder();
+        while (currentIndex < end) {
+            if ((this.calendarTemplate[currentIndex] == this.mpost[0]) && (this.calendarTemplate[currentIndex + 1]) == this.mpost[1]) {
+                // End token.
+                currentIndex = currentIndex + 2;
+                end = currentIndex; // Exit the loop.
+            } else {
+                // Characters of the token.
+                token.append(this.calendarTemplate[currentIndex]);
+                currentIndex++;
+            }
+        }
+        this.processCalendarToken(token.toString());
+
+        return currentIndex;
+    }
+
+    private void processCalendarToken(String token) {
+        int dataIndex = token.indexOf('-');
+        String data = null;
+        String dataExtra = null;
+        if (dataIndex != -1) {
+            // We have data.
+            data = token.substring(dataIndex + 1, token.length());
+            token = token.substring(0, dataIndex);
+            
+            int ampIndex = data.indexOf('&');
+            if (ampIndex != 1) {
+                dataExtra = data.substring(ampIndex + 1, data.length());
+                data = data.substring(0, ampIndex);
+            }
+        }
+
+        switch (token) {
+            case "calendartitle":
+                this.markupOut.append(this.gc.get(Calendar.YEAR)).append(" Calendar");
+                break;
+            case "jan":
+                this.monthTemplate(0, data, dataExtra);
+                break;
+            case "feb":
+                this.monthTemplate(1, data, dataExtra);
+                break;
+            case "mar":
+                this.monthTemplate(2, data, dataExtra);
+                break;
+            case "apr":
+                this.monthTemplate(3, data, dataExtra);
+                break;
+            case "may":
+                this.monthTemplate(4, data, dataExtra);
+                break;
+            case "jun":
+                this.monthTemplate(5, data, dataExtra);
+                break;
+            case "jul":
+                this.monthTemplate(6, data, dataExtra);
+                break;
+            case "aug":
+                this.monthTemplate(7, data, dataExtra);
+                break;
+            case "sep":
+                this.monthTemplate(8, data, dataExtra);
+                break;
+            case "oct":
+                this.monthTemplate(9, data, dataExtra);
+                break;
+            case "nov":
+                this.monthTemplate(10, data, dataExtra);
+                break;
+            case "dec":
+                this.monthTemplate(11, data, dataExtra);
+                break;
+            default:
+                this.markupOut.append("<p>Calendar error!</p>");
+        }
+    }
+
+    private void monthTemplate(int theMonth, String imageName, String imageDescription) {
         this.gc.set(Calendar.MONTH, theMonth);
         this.nextMonth = theMonth;
         this.currentMonth = this.nextMonth;
@@ -341,7 +359,7 @@ public class CalGen {
                 if ((this.monthTemplate[currentIndex] == this.mpre[0]) && (this.monthTemplate[currentIndex + 1]) == this.mpre[1]) {
                     // Start token.
                     currentIndex = currentIndex + 2;
-                    currentIndex = this.processMonthToken(currentIndex);
+                    currentIndex = this.processMonthToken(currentIndex, imageName, imageDescription);
                 } else {
                     // Pass through.
                     this.markupOut.append(this.monthTemplate[currentIndex]);
@@ -350,7 +368,7 @@ public class CalGen {
             }
     }
 
-    private int processMonthToken(int currentIndex) {
+    private int processMonthToken(int currentIndex, String imageName, String imageDescription) {
         int end = this.monthTemplate.length;
         StringBuilder token = new StringBuilder();
         while (currentIndex < end) {
@@ -364,12 +382,12 @@ public class CalGen {
                 currentIndex++;
             }
         }
-        this.processMonthToken(token.toString());
+        this.processMonthToken(token.toString(), imageName, imageDescription);
 
         return currentIndex;
     }
 
-    private void processMonthToken(String token) {
+    private void processMonthToken(String token, String imageName, String imageDescription) {
         int dataIndex = token.indexOf('-');
         String data = null;
         if (dataIndex != -1) {
@@ -388,17 +406,17 @@ public class CalGen {
             case "monthweek":
                 this.monthWeek(data);
                 break;
+            case "monthimage":
+                this.monthImage(imageName);
+                break;
+            case "monthimagedescription":
+                this.monthImage(imageDescription);
+                break;
             default:
-                this.markupOut.append("<p>Error!</p>");
+                this.markupOut.append("<p>Month error!</p>");
         }
     }
 
-    /* private void monthTitle() {
-        this.markupOut.append("<div class=\"cal-row nowrap\">");
-        this.markupOut.append("<div class=\"cal-1\">").append(this.getMonthText(gc.get(Calendar.MONTH))).append("</div>");
-        this.markupOut.append("</div>");
-    } */
-    
     private void monthDayNames(String data) {
         // "{{monthdaynames-<div class=\"cal-7\">*</div>}}"
         int starIndex = data.indexOf('*');
@@ -481,26 +499,12 @@ public class CalGen {
         }
     }
 
-    private void dayTemplate(String day) {
-        this.dayTemplate(day, true);
-    }
-
-    private void dayTemplate(Integer day) {
-        this.dayTemplate(day.toString(), true);
-    }
-
-    private void dayTemplate(String day, boolean dayToMarkup) {
-        if (day == null) {
-            this.markupOut.append("<div class=\"cal-7\">").append(this.gc.get(Calendar.DAY_OF_MONTH)).append("</div>");
-        } else {
-            this.markupOut.append("<div class=\"cal-7\">");
-            if (dayToMarkup) {
-                this.markupOut.append(day);
-            }
-            this.markupOut.append("</div>");
+    private void monthImage(String text) {
+        if (text != null) {
+            this.markupOut.append(text);
         }
     }
-
+    
     private String getMonthText(int theMonth) {
         String retr;
 
