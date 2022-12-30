@@ -22,7 +22,8 @@ public class CalGen {
     private final GregorianCalendar gc = new GregorianCalendar();
     private int currentMonth;
     private int nextMonth;
-    private final boolean startOnMonday;
+    private final boolean calendarStartsOnSunday;
+    private final int calendarStartDay;
     private final int theYear;
 
     // Template attributes.
@@ -47,8 +48,9 @@ public class CalGen {
     }
 
     public CalGen() throws FileNotFoundException {
-        this.gc.setFirstDayOfWeek(Calendar.MONDAY); // Change to SUNDAY if wished.
-        this.startOnMonday = (this.gc.getFirstDayOfWeek() == Calendar.MONDAY);
+        this.gc.setFirstDayOfWeek(Calendar.TUESDAY); // Change to SUNDAY if wished.
+        this.calendarStartDay = this.gc.getFirstDayOfWeek();
+        this.calendarStartsOnSunday = (this.calendarStartDay == Calendar.SUNDAY);
 
         this.theYear = this.gc.get(Calendar.YEAR) + 1;
         this.mout = new FileOutputStream("./calm.html");
@@ -67,8 +69,8 @@ public class CalGen {
     }
 
     private void month(int theMonth) {
-        int currentDayOfWeek;
-        int currentPrintedDay;
+        int monthStartPostion = 1;
+        int currentPosition;
 
         this.gc.set(Calendar.MONTH, theMonth);
         this.nextMonth = theMonth;
@@ -76,7 +78,7 @@ public class CalGen {
 
         System.out.println(this.getMonthText(gc.get(Calendar.MONTH)));
 
-        if (this.startOnMonday) {
+        if (!this.calendarStartsOnSunday) {
             this.day("Mon");
             System.out.print(" ");
             this.day("Tue");
@@ -108,20 +110,57 @@ public class CalGen {
             System.out.println();
         }
 
+        boolean startDayReached; // = true;
+        //if (!this.calendarStartsOnSunday) {
+            monthStartPostion = this.gc.get(Calendar.DAY_OF_WEEK); // Day of the week that the month starts on.
+            // Work out where that day is in our row, its position.
+            monthStartPostion = monthStartPostion - (this.calendarStartDay - 1);
+            if (monthStartPostion < 1) {
+                monthStartPostion = 8 - (this.calendarStartDay - 1);
+            }
+            startDayReached = (1 == monthStartPostion);  // Position one is the start day of this month.
+        //}
+        
         while (this.currentMonth == this.nextMonth) {
 
-            for (currentPrintedDay = 1; currentPrintedDay < 8; currentPrintedDay++) {
-                currentDayOfWeek = this.gc.get(Calendar.DAY_OF_WEEK);
-                if (this.startOnMonday) {
-                    currentDayOfWeek--;
-                    if (currentDayOfWeek < 1) {
-                        currentDayOfWeek = 7;
-                    }
-                }
+            for (currentPosition = 1; currentPosition < 8; currentPosition++) {
+                /*currentDayOfWeek = this.gc.get(Calendar.DAY_OF_WEEK) - this.startDay;
+                if (currentDayOfWeek < 1) {
+                    currentDayOfWeek = 7 - this.startDay;
+                } */
 
-                if (currentPrintedDay != currentDayOfWeek) {
+                /*currentDayOfWeek = this.gc.get(Calendar.DAY_OF_WEEK);
+                if (!this.startOnSunday) {
+                    currentDayOfWeek = currentDayOfWeek - (this.startDay - 1);
+                    if (currentDayOfWeek < 1) {
+                        currentDayOfWeek = 8 - (this.startDay - 1);
+                    }
+                }*/
+
+                /*currentDayOfWeek = this.gc.get(Calendar.DAY_OF_WEEK);
+                if (!this.startOnSunday) {
+                    //currentDayOfWeek--;
+                    currentDayOfWeek = currentDayOfWeek - (this.startDay - 1);
+                    //currentDayOfWeek = currentPrintedDay - (this.startDay - 1);
+                    if (currentDayOfWeek < 1) {
+                        currentDayOfWeek = 8 - (this.startDay - 1);
+                    }
+                }*/
+
+                if (this.currentMonth != this.nextMonth) {
+                    if (currentPosition != 1) {
+                        while (currentPosition < 8) {
+                            this.day("");
+                            System.out.print(" -* ");
+                            currentPosition++;
+                        }
+                    }
+                } else if (!startDayReached) {
                     this.day("");
                     System.out.print(" -! ");
+                    if ((currentPosition + 1) == monthStartPostion) {
+                        startDayReached = true;
+                    }
                 } else {
                     if (this.gc.get(Calendar.DAY_OF_MONTH) > 9) {
                         System.out.print(" ");
@@ -132,16 +171,6 @@ public class CalGen {
                     System.out.print(" ");
                     this.gc.add(Calendar.DAY_OF_MONTH, 1);
                     this.nextMonth = this.gc.get(Calendar.MONTH);
-                }
-                if (this.currentMonth != this.nextMonth) {
-                    if (currentPrintedDay != 1) {
-                        currentPrintedDay++;
-                        while (currentPrintedDay < 8) {
-                            this.day("");
-                            System.out.print(" -* ");
-                            currentPrintedDay++;
-                        }
-                    }
                 }
             }
             System.out.println();
@@ -337,7 +366,7 @@ public class CalGen {
         String pre = data.substring(0, starIndex);
         String post = data.substring(starIndex + 1, data.length());
 
-        if (this.startOnMonday) {
+        if (!this.calendarStartsOnSunday) {
             this.monthDay("Mon", pre, post);
             this.monthDay("Tue", pre, post);
             this.monthDay("Wed", pre, post);
@@ -384,7 +413,7 @@ public class CalGen {
 
             for (currentPrintedDay = 1; currentPrintedDay < 8; currentPrintedDay++) {
                 currentDayOfWeek = this.gc.get(Calendar.DAY_OF_WEEK);
-                if (this.startOnMonday) {
+                if (!this.calendarStartsOnSunday) {
                     currentDayOfWeek--;
                     if (currentDayOfWeek < 1) {
                         currentDayOfWeek = 7;
@@ -419,9 +448,7 @@ public class CalGen {
     }
 
     private String getMonthText(int theMonth) {
-        String retr;
-
-        retr = switch (theMonth) {
+        return switch (theMonth) {
             case Calendar.JANUARY -> "January";
             case Calendar.FEBRUARY -> "February";
             case Calendar.MARCH -> "March";
@@ -436,8 +463,6 @@ public class CalGen {
             case Calendar.DECEMBER -> "December";
             default -> "Unknown";
         };
-
-        return retr;
     }
 
 }
