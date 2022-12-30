@@ -1,0 +1,12 @@
+<div class="cal-4 month">
+    <div class="cal-row nowrap monthheader">
+        <div class="cal-1 monthtitle">{{monthtitle}}</div>
+    </div>
+    <div class="cal-row monthimagewrapper">
+        <img class="cal-1 cal-img monthimage" src="{{monthimage}}" alt="{{monthimagedescription}}">
+    </div>
+    <div class="cal-row nowrap monthdaynames">
+        {{monthdaynames-<div class="cal-7 monthdayname">*</div>}}
+    </div>
+    {{monthweek-<div class="cal-row nowrap monthweek">!</div>&<div class="cal-7 monthday">*</div>}}
+</div>
