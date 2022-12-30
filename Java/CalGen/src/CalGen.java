@@ -26,12 +26,10 @@ public class CalGen {
     private final LinkedList<Integer> days = new LinkedList<>();
     private int currentMonth;
     private int nextMonth;
-    private final boolean calendarStartsOnSunday;
-    private final int calendarStartDay;
     private final int theYear;
 
     // Template attributes.
-    private char[] calendarTemplate;
+    private char[] calendarTemplate = null;
     private char[] monthTemplate = null;
 
     private final char[] mpre = {'{', '{'};
@@ -53,8 +51,6 @@ public class CalGen {
 
     public CalGen() throws FileNotFoundException {
         this.gc.setFirstDayOfWeek(Calendar.TUESDAY); // Change to SUNDAY if wished.
-        this.calendarStartDay = this.gc.getFirstDayOfWeek();
-        this.calendarStartsOnSunday = (this.calendarStartDay == Calendar.SUNDAY);
 
         this.theYear = this.gc.get(Calendar.YEAR) + 1;
         this.mout = new FileOutputStream("./calm.html");
@@ -106,37 +102,6 @@ public class CalGen {
 
         System.out.println(this.getMonthText(gc.get(Calendar.MONTH)));
 
-        /*if (!this.calendarStartsOnSunday) {
-            this.day("Mon");
-            System.out.print(" ");
-            this.day("Tue");
-            System.out.print(" ");
-            this.day("Wed");
-            System.out.print(" ");
-            this.day("Thu");
-            System.out.print(" ");
-            this.day("Fri");
-            System.out.print(" ");
-            this.day("Sat");
-            System.out.print(" ");
-            this.day("Sun");
-            System.out.println();
-        } else {
-            this.day("Sun");
-            System.out.print(" ");
-            this.day("Mon");
-            System.out.print(" ");
-            this.day("Tue");
-            System.out.print(" ");
-            this.day("Wed");
-            System.out.print(" ");
-            this.day("Thu");
-            System.out.print(" ");
-            this.day("Fri");
-            System.out.print(" ");
-            this.day("Sat");
-            System.out.println();
-        } */
         Iterator<Integer> daysIt = this.days.iterator();
         Integer current;
         while (daysIt.hasNext()) {
@@ -164,40 +129,9 @@ public class CalGen {
                 System.out.print(" -! ");
             }
         }
-
-        //if (!this.calendarStartsOnSunday) {
-            // Work out where that day is in our row, its position.
-            /*monthStartPostion = monthStartPostion - (this.calendarStartDay - 1);
-            if (monthStartPostion < 1) {
-                monthStartPostion = 8 - (this.calendarStartDay - 1);
-            }
-            startDayReached = (1 == monthStartPostion); */  // Position one is the start day of this month.
-        //}
         
         while (this.currentMonth == this.nextMonth) {
             while (currentPosition < 8) {
-                /*currentDayOfWeek = this.gc.get(Calendar.DAY_OF_WEEK) - this.startDay;
-                if (currentDayOfWeek < 1) {
-                    currentDayOfWeek = 7 - this.startDay;
-                } */
-
-                /*currentDayOfWeek = this.gc.get(Calendar.DAY_OF_WEEK);
-                if (!this.startOnSunday) {
-                    currentDayOfWeek = currentDayOfWeek - (this.startDay - 1);
-                    if (currentDayOfWeek < 1) {
-                        currentDayOfWeek = 8 - (this.startDay - 1);
-                    }
-                }*/
-
-                /*currentDayOfWeek = this.gc.get(Calendar.DAY_OF_WEEK);
-                if (!this.startOnSunday) {
-                    //currentDayOfWeek--;
-                    currentDayOfWeek = currentDayOfWeek - (this.startDay - 1);
-                    //currentDayOfWeek = currentPrintedDay - (this.startDay - 1);
-                    if (currentDayOfWeek < 1) {
-                        currentDayOfWeek = 8 - (this.startDay - 1);
-                    }
-                }*/
 
                 if (this.currentMonth != this.nextMonth) {
                     if (currentPosition != 1) {
@@ -207,12 +141,6 @@ public class CalGen {
                             currentPosition++;
                         }
                     }
-                /*} else if (!startDayReached) {
-                    this.day("");
-                    System.out.print(" -! ");
-                    if ((currentPosition + 1) == monthStartPostion) {
-                        startDayReached = true;
-                    }*/
                 } else {
                     if (this.gc.get(Calendar.DAY_OF_MONTH) > 9) {
                         System.out.print(" ");
@@ -427,24 +355,6 @@ public class CalGen {
             current = daysIt.next();
             this.monthDay(this.getDayText(current), pre, post);
         }
-
-        /*if (!this.calendarStartsOnSunday) {
-            this.monthDay("Mon", pre, post);
-            this.monthDay("Tue", pre, post);
-            this.monthDay("Wed", pre, post);
-            this.monthDay("Thu", pre, post);
-            this.monthDay("Fri", pre, post);
-            this.monthDay("Sat", pre, post);
-            this.monthDay("Sun", pre, post);
-        } else {
-            this.monthDay("Sun", pre, post);
-            this.monthDay("Mon", pre, post);
-            this.monthDay("Tue", pre, post);
-            this.monthDay("Wed", pre, post);
-            this.monthDay("Thu", pre, post);
-            this.monthDay("Fri", pre, post);
-            this.monthDay("Sat", pre, post);
-        }*/
     }
 
     private void monthDay(Integer day, String pre, String post) {
