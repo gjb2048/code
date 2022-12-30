@@ -100,9 +100,6 @@ public class CalGen {
     }
 
     private void month(int theMonth) {
-        int monthStartPostion;
-        int currentPosition;
-
         this.gc.set(Calendar.MONTH, theMonth);
         this.nextMonth = theMonth;
         this.currentMonth = this.nextMonth;
@@ -152,10 +149,10 @@ public class CalGen {
             }
         }
 
-        currentPosition = 1;
+        int currentPosition = 1;
         daysIt = this.days.iterator();
         boolean startDayReached = false;
-        monthStartPostion = this.gc.get(Calendar.DAY_OF_WEEK); // Day of the week that the month starts on.
+        int monthStartPostion = this.gc.get(Calendar.DAY_OF_WEEK); // Day of the week that the month starts on.
 
         while (daysIt.hasNext() && (startDayReached == false)) {
             current = daysIt.next();
@@ -424,7 +421,14 @@ public class CalGen {
         String pre = data.substring(0, starIndex);
         String post = data.substring(starIndex + 1, data.length());
 
-        if (!this.calendarStartsOnSunday) {
+        Iterator<Integer> daysIt = this.days.iterator();
+        Integer current;
+        while (daysIt.hasNext()) {
+            current = daysIt.next();
+            this.monthDay(this.getDayText(current), pre, post);
+        }
+
+        /*if (!this.calendarStartsOnSunday) {
             this.monthDay("Mon", pre, post);
             this.monthDay("Tue", pre, post);
             this.monthDay("Wed", pre, post);
@@ -440,7 +444,7 @@ public class CalGen {
             this.monthDay("Thu", pre, post);
             this.monthDay("Fri", pre, post);
             this.monthDay("Sat", pre, post);
-        }
+        }*/
     }
 
     private void monthDay(Integer day, String pre, String post) {
@@ -462,39 +466,47 @@ public class CalGen {
         String dayPre = data.substring(ampIndex + 1, starIndex);
         String dayPost = data.substring(starIndex + 1, data.length());
 
-        int currentDayOfWeek;
-        int currentPrintedDay;
+        int currentPosition = 1;
+        boolean startDayReached = false;
 
         while (this.currentMonth == this.nextMonth) {
-
             this.markupOut.append(weekPre);
 
-            for (currentPrintedDay = 1; currentPrintedDay < 8; currentPrintedDay++) {
-                currentDayOfWeek = this.gc.get(Calendar.DAY_OF_WEEK);
-                if (!this.calendarStartsOnSunday) {
-                    currentDayOfWeek--;
-                    if (currentDayOfWeek < 1) {
-                        currentDayOfWeek = 7;
+            if (startDayReached == false) {
+                Iterator<Integer> daysIt = this.days.iterator();
+                int monthStartPostion = this.gc.get(Calendar.DAY_OF_WEEK); // Day of the week that the month starts on.
+                Integer current;
+                
+                while (daysIt.hasNext() && (startDayReached == false)) {
+                    current = daysIt.next();
+                    if (current == monthStartPostion) {
+                        startDayReached = true;
+                    } else {
+                        currentPosition++;
+                        this.monthDay("", dayPre, dayPost);
                     }
                 }
+            }
 
-                if (currentPrintedDay != currentDayOfWeek) {
-                    this.monthDay("", dayPre, dayPost);
+            while (currentPosition < 8) {
+
+                if (this.currentMonth != this.nextMonth) {
+                    if (currentPosition != 1) {
+                        while (currentPosition < 8) {
+                            this.monthDay("", dayPre, dayPost);
+                            currentPosition++;
+                        }
+                    }
                 } else {
                     this.monthDay(this.gc.get(Calendar.DAY_OF_MONTH), dayPre, dayPost);
                     this.gc.add(Calendar.DAY_OF_MONTH, 1);
                     this.nextMonth = this.gc.get(Calendar.MONTH);
-                }
-                if (this.currentMonth != this.nextMonth) {
-                    if (currentPrintedDay != 1) {
-                        currentPrintedDay++;
-                        while (currentPrintedDay < 8) {
-                            this.monthDay("", dayPre, dayPost);
-                            currentPrintedDay++;
-                        }
-                    }
+
+                    currentPosition++;
                 }
             }
+            currentPosition = 1;
+
             this.markupOut.append(weekPost);
         }
     }
