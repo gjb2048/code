@@ -1,6 +1,8 @@
 /*
  * CalGen.
  *
+ * Generates the calendar for the year set, both as a HTML page from 'templated' and as text.
+ *
  * @copyright  2022 G J Barnard
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -22,22 +24,26 @@ import java.util.LinkedList;
 public class CalGen {
 
     // Calendar attributes.
-    private final GregorianCalendar gc = new GregorianCalendar();
-    private final LinkedList<Integer> days = new LinkedList<>();
-    private int currentMonth;
-    private int nextMonth;
-    private final int theYear;
+    private final GregorianCalendar gc = new GregorianCalendar(); // The calenadar.
+    private final LinkedList<Integer> months = new LinkedList<>(); // The days of the week.
+    private final LinkedList<Integer> days = new LinkedList<>(); // The days of the week.
+    private int currentMonth; // Keep track of the current month between methods.
+    private int previousMonth; // Keep track of the previous month between methods.
+    private final int theYear; // The year we are using.
 
     // Template attributes.
-    private char[] calendarTemplate = null;
-    private char[] monthTemplate = null;
+    private char[] calendarTemplate = null; // The template for the calendar.
+    private char[] monthTemplate = null; // The template of a month within the calendar.
 
-    private final char[] mpre = {'{', '{'};
-    private final char[] mpost = {'}', '}'};
-    private final FileOutputStream mout;
-    private final StringBuffer markupOut = new StringBuffer();
+    private final char[] mpre = {'{', '{'}; // Template markup token start characters.
+    private final char[] mpost = {'}', '}'}; // Template markup token end characters.
+    private final FileOutputStream mout; // The stream for the markup html file.
+    private final StringBuffer markupOut = new StringBuffer(); // Stores the markup html as its being generated before it is output to the file.
 
     /**
+     *
+     * Create the calendar and generate both the text and markup versions.
+     *
      * @param args the command line arguments - not used.
      * @throws java.io.FileNotFoundException
      * @throws java.io.IOException
@@ -49,12 +55,32 @@ public class CalGen {
         us.calendarTemplate();
     }
 
+    /**
+     * Constructor.
+     *
+     * @throws FileNotFoundException if a template file cannot be found.
+     */
     public CalGen() throws FileNotFoundException {
-        this.gc.setFirstDayOfWeek(Calendar.TUESDAY); // Change to SUNDAY if wished.
+        this.gc.setFirstDayOfWeek(Calendar.TUESDAY); // Change to another day if wished.
+        this.theYear = 2023;
 
-        this.theYear = this.gc.get(Calendar.YEAR) + 1;
-        this.mout = new FileOutputStream("./calm.html");
+        this.mout = new FileOutputStream("./calm.html"); // The name of the markup file in the current directory.
 
+        // Add the months in the order we wish to output them as text.
+        months.add(Calendar.JANUARY);
+        months.add(Calendar.FEBRUARY);
+        months.add(Calendar.MARCH);
+        months.add(Calendar.APRIL);
+        months.add(Calendar.MAY);
+        months.add(Calendar.JUNE);
+        months.add(Calendar.JULY);
+        months.add(Calendar.AUGUST);
+        months.add(Calendar.SEPTEMBER);
+        months.add(Calendar.OCTOBER);
+        months.add(Calendar.NOVEMBER);
+        months.add(Calendar.DECEMBER);
+        
+        // Add the days in the order used by default in the GregorianCalendar.
         days.add(Calendar.SUNDAY);
         days.add(Calendar.MONDAY);
         days.add(Calendar.TUESDAY);
@@ -63,45 +89,60 @@ public class CalGen {
         days.add(Calendar.FRIDAY);
         days.add(Calendar.SATURDAY);
 
-        Iterator<Integer> daysIt = days.iterator();
-        boolean found = false;
-        int count = 0;
-        Integer current;
-        int firstDayOfWeek = this.gc.getFirstDayOfWeek();
+        // Rotate the days around if needed so that the start day is first in the list.
+        Iterator<Integer> daysIt = days.iterator(); // The means of iterating over our list.
+        boolean found = false; // Have we found the day we are looking for?
+        int count = 0; // The number of positions the day we are looking for is away from Sunday.
+        Integer current; // The reference to the current day.
+        int firstDayOfWeek = this.gc.getFirstDayOfWeek(); // The day that the calendar has been set to be the first day of the week.
 
-        while (daysIt.hasNext() && found == false) {
-            current = daysIt.next();
-            if (current == firstDayOfWeek) {
-                found = true;
+        while (daysIt.hasNext() && found == false) { // While we have another day to check and we've not found the day we are looking for.
+            current = daysIt.next(); // Get the next day.
+            if (current == firstDayOfWeek) { // Have we found the day we are looking for?
+                found = true; // Yes.
             } else {
-                count++;
+                count++; // Increment the position.
             }
         }
 
-        if (count > 0) {
+        if (count > 0) { // The day we are looking for is not Sunday, but is 'count' positions away from it.
+            // Rotate the list to the left by the number of positions we have calculated.
+            // The day we are looking for will then be the first.
             Collections.rotate(days, -count);
         }
     }
 
-    public void calendar() throws IOException, FileNotFoundException {
-        this.gc.set(theYear, 0, 1);
+    /**
+     * Generate the text version of the calendar.
+     */
+    public void calendar() {
+        this.gc.set(theYear, 0, 1); // Set to the 1st January for the year we want.
 
+        // Output the year.
         System.out.println(this.gc.get(Calendar.YEAR));
 
-
-        for (int theMonths = 0; theMonths < 12; theMonths++) {
-            this.month(theMonths);
+        // Output the months.
+        Iterator<Integer> mit = this.months.iterator();
+        while (mit.hasNext()) {
+            this.month(mit.next());
             System.out.println();
         }
     }
 
+    /**
+     * Output the month.
+     *
+     * @param theMonth The month to output.
+     */
     private void month(int theMonth) {
-        this.gc.set(Calendar.MONTH, theMonth);
-        this.nextMonth = theMonth;
-        this.currentMonth = this.nextMonth;
+        this.gc.set(Calendar.MONTH, theMonth); // Tell the calendar the month we wish to use.
+        // Set both months to be the same so that we can detect when the current changes.
+        this.currentMonth = theMonth;
+        this.previousMonth = theMonth;
 
-        System.out.println(this.getMonthText(gc.get(Calendar.MONTH)));
+        System.out.println(this.getMonthText(gc.get(Calendar.MONTH))); // Output the month text.
 
+        // Output the day names.
         Iterator<Integer> daysIt = this.days.iterator();
         Integer current;
         while (daysIt.hasNext()) {
@@ -114,9 +155,10 @@ public class CalGen {
             }
         }
 
-        int currentPosition = 1;
+        // Output the 'blank days' before the day on which the 1st of the month is.
+        int currentPosition = 1; // The current 'position' of the day in the week we are outputing, so '1' is the first day of the week.
         daysIt = this.days.iterator();
-        boolean startDayReached = false;
+        boolean startDayReached = false; // Have we found the start day?
         int monthStartPostion = this.gc.get(Calendar.DAY_OF_WEEK); // Day of the week that the month starts on.
 
         while (daysIt.hasNext() && (startDayReached == false)) {
@@ -129,12 +171,18 @@ public class CalGen {
                 System.out.print(" -! ");
             }
         }
-        
-        while (this.currentMonth == this.nextMonth) {
+
+        // Loop until we have reached the next month.
+        while (this.currentMonth == this.previousMonth) {
+            
+            // Loop through the day 'positions' as we have outputted them with the day names.
             while (currentPosition < 8) {
 
-                if (this.currentMonth != this.nextMonth) {
+                // Have we reached the next month?
+                if (this.currentMonth != this.previousMonth) {
+                    // Are we on a week that has been started but not finished?
                     if (currentPosition != 1) {
+                        // Loop through the remaining positions and output 'blank' days.
                         while (currentPosition < 8) {
                             this.day("");
                             System.out.print(" -* ");
@@ -142,24 +190,31 @@ public class CalGen {
                         }
                     }
                 } else {
-                    if (this.gc.get(Calendar.DAY_OF_MONTH) > 9) {
+                    // Output the day.
+                    if (this.gc.get(Calendar.DAY_OF_MONTH) > 9) { // Get the prefixing spacing correct.
                         System.out.print(" ");
                     } else {
                         System.out.print("  ");
                     }
-                    this.day(this.gc.get(Calendar.DAY_OF_MONTH));
-                    System.out.print(" ");
-                    this.gc.add(Calendar.DAY_OF_MONTH, 1);
-                    this.nextMonth = this.gc.get(Calendar.MONTH);
+                    this.day(this.gc.get(Calendar.DAY_OF_MONTH)); // The day.
+                    System.out.print(" "); // Postfix space.
 
-                    currentPosition++;
+                    // Get the next day.
+                    this.gc.add(Calendar.DAY_OF_MONTH, 1);
+                    this.currentMonth = this.gc.get(Calendar.MONTH);
+
+                    currentPosition++; // The next position in the week.
                 }
             }
-            currentPosition = 1;
+            currentPosition = 1; // Reset to the next week.
             System.out.println();
         }
     }
 
+    /**
+     * Output.
+     * @param day 
+     */
     private void day(Integer day) {
         this.day(day.toString());
     }
@@ -169,8 +224,7 @@ public class CalGen {
     }
 
     public void calendarTemplate() throws FileNotFoundException, IOException {
-        // Reset.
-        this.gc.set(theYear, 0, 1);
+        this.gc.set(theYear, 0, 1); // Reset to the 1st January for the year we want.
         try (this.mout) {
             this.loadTemplates();
             int currentIndex = 0;
@@ -288,8 +342,8 @@ public class CalGen {
 
     private void monthTemplate(int theMonth, String imageName, String imageDescription) {
         this.gc.set(Calendar.MONTH, theMonth);
-        this.nextMonth = theMonth;
-        this.currentMonth = this.nextMonth;
+        this.previousMonth = theMonth;
+        this.currentMonth = theMonth;
 
         int currentIndex = 0;
 
@@ -379,7 +433,7 @@ public class CalGen {
         int currentPosition = 1;
         boolean startDayReached = false;
 
-        while (this.currentMonth == this.nextMonth) {
+        while (this.currentMonth == this.previousMonth) {
             this.markupOut.append(weekPre);
 
             if (startDayReached == false) {
@@ -400,7 +454,7 @@ public class CalGen {
 
             while (currentPosition < 8) {
 
-                if (this.currentMonth != this.nextMonth) {
+                if (this.currentMonth != this.previousMonth) {
                     if (currentPosition != 1) {
                         while (currentPosition < 8) {
                             this.monthDay("", dayPre, dayPost);
@@ -410,7 +464,7 @@ public class CalGen {
                 } else {
                     this.monthDay(this.gc.get(Calendar.DAY_OF_MONTH), dayPre, dayPost);
                     this.gc.add(Calendar.DAY_OF_MONTH, 1);
-                    this.nextMonth = this.gc.get(Calendar.MONTH);
+                    this.currentMonth = this.gc.get(Calendar.MONTH);
 
                     currentPosition++;
                 }
