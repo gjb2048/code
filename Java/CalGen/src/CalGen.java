@@ -10,11 +10,11 @@
  */
 
 import java.io.FileNotFoundException;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Calendar;
 import java.util.Collections;
+import java.util.GregorianCalendar;
 import java.util.Iterator;
 import java.util.LinkedList;
 
@@ -40,7 +40,8 @@ public class CalGen {
     private final char[] mpre = {'{', '{'}; // Template markup token start characters.
     private final char[] mpost = {'}', '}'}; // Template markup token end characters.
     private final FileOutputStream mout; // The stream for the markup html file.
-    private final StringBuffer markupOut = new StringBuffer(); // Stores the markup html as its being generated before it is output to the file.
+    // Stores the markup html as its being generated before it is output to the file.
+    private final StringBuffer markupOut = new StringBuffer();
 
     /**
      * Create the calendar and generate both the text and markup versions.
@@ -65,7 +66,8 @@ public class CalGen {
         this.gc.setFirstDayOfWeek(Calendar.TUESDAY); // Change to another day if wished.
         this.theYear = 2023;
 
-        this.mout = new FileOutputStream("./calm.html"); // The name of the markup file in the current directory.
+        // The name of the markup file in the current directory.
+        this.mout = new FileOutputStream("./" + this.theYear + "_Calendar.html");
 
         // Add the months in the order we wish to output them as text.
         months.add(Calendar.JANUARY);
@@ -97,7 +99,8 @@ public class CalGen {
         Integer current; // The reference to the current day.
         int firstDayOfWeek = this.gc.getFirstDayOfWeek(); // The day that the calendar has been set to be the first day of the week.
 
-        while (daysIt.hasNext() && found == false) { // While we have another day to check and we've not found the day we are looking for.
+        // While we have another day to check and we've not found the day we are looking for.
+        while (daysIt.hasNext() && found == false) {
             current = daysIt.next(); // Get the next day.
             if (current == firstDayOfWeek) { // Have we found the day we are looking for?
                 found = true; // Yes.
@@ -157,7 +160,8 @@ public class CalGen {
         }
 
         // Output the 'blank days' before the day on which the 1st of the month is.
-        int currentPosition = 1; // The current 'position' of the day in the week we are outputing, so '1' is the first day of the week.
+        // The current 'position' of the day in the week we are outputing, so '1' is the first day of the week.
+        int currentPosition = 1;
         daysIt = this.days.iterator();
         boolean startDayReached = false; // Have we found the start day?
         int monthStartPostion = this.gc.get(Calendar.DAY_OF_WEEK); // Day of the week that the month starts on.
