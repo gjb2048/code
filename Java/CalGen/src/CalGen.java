@@ -45,8 +45,8 @@ public class CalGen {
      * Create the calendar and generate both the text and markup versions.
      *
      * @param args the command line arguments - not used.
-     * @throws java.io.FileNotFoundException
-     * @throws java.io.IOException
+     * @throws java.io.FileNotFoundException If a template file cannot be found.
+     * @throws java.io.IOException If a problem occurs when reading a template file.
      */
     public static void main(String args[]) throws FileNotFoundException, IOException {
         CalGen us = new CalGen();
@@ -58,7 +58,7 @@ public class CalGen {
     /**
      * Constructor.
      *
-     * @throws FileNotFoundException if a template file cannot be found.
+     * @throws FileNotFoundException If a template file cannot be found.
      */
     public CalGen() throws FileNotFoundException {
         this.gc.setFirstDayOfWeek(Calendar.TUESDAY); // Change to another day if wished.
@@ -197,7 +197,9 @@ public class CalGen {
                         System.out.print("  ");
                     }
                     this.day(this.gc.get(Calendar.DAY_OF_MONTH)); // The day.
-                    System.out.print(" "); // Postfix space.
+                    if (currentPosition < 7) {
+                        System.out.print(" "); // Postfix space.
+                    }
 
                     // Get the next day.
                     this.gc.add(Calendar.DAY_OF_MONTH, 1);
@@ -212,37 +214,49 @@ public class CalGen {
     }
 
     /**
-     * Output.
-     * @param day 
+     * Output the day.
+     * @param day As an integer.
      */
     private void day(Integer day) {
         this.day(day.toString());
     }
 
+    /**
+     * Output the day.
+     * @param day As a string.
+     */
     private void day(String day) {
         System.out.print(day);
     }
 
+    /**
+     * Generate the markup version of the calendar.
+     *
+     * @throws FileNotFoundException If a template file cannot be found.
+     * @throws IOException If a problem occurs when reading a template file.
+     */
     public void calendarTemplate() throws FileNotFoundException, IOException {
         this.gc.set(theYear, 0, 1); // Reset to the 1st January for the year we want.
-        try (this.mout) {
-            this.loadTemplates();
-            int currentIndex = 0;
 
-            while (currentIndex < this.calendarTemplate.length) {
-                if ((this.calendarTemplate[currentIndex] == this.mpre[0]) && (this.calendarTemplate[currentIndex + 1]) == this.mpre[1]) {
-                    // Start token.
-                    currentIndex = currentIndex + 2;
-                    currentIndex = this.processCalendarToken(currentIndex);
-                } else {
-                    // Pass through.
-                    this.markupOut.append(this.calendarTemplate[currentIndex]);
-                    currentIndex++;
-                }
+        this.loadTemplates(); // Load the templates.
+
+        // Process the calendar template.
+        int currentIndex = 0; // Index of the current character.
+        while (currentIndex < this.calendarTemplate.length) {
+            if ((this.calendarTemplate[currentIndex] == this.mpre[0]) &&
+                (this.calendarTemplate[currentIndex + 1]) == this.mpre[1]) {
+                // Start token.
+                currentIndex = currentIndex + 2; // Jump over the token start characters.
+                currentIndex = this.processCalendarToken(currentIndex); // Process the token.
+            } else {
+                // Pass through.
+                this.markupOut.append(this.calendarTemplate[currentIndex]); // Copy the character to the output.
+                currentIndex++; // Get the next character.
             }
-
-            this.mout.write(this.markupOut.toString().getBytes());
         }
+
+        this.mout.write(this.markupOut.toString().getBytes()); // Write the markup to the output file.
+        this.mout.close(); // Close the file.
     }
 
     /**
@@ -250,27 +264,30 @@ public class CalGen {
      *
      * Ref: https://stackoverflow.com/questions/21980090/javas-randomaccessfile-eofexception
      *
-     * @throws FileNotFoundException
-     * @throws IOException
+     * @throws FileNotFoundException If a template file cannot be found.
+     * @throws IOException If a problem occurs when reading a template file.
      */
     private void loadTemplates() throws FileNotFoundException, IOException {
         // Calendar template.
-        java.io.File templateFile = new java.io.File("CalendarTemplate.txt");
+        java.io.File templateFile = new java.io.File("CalendarTemplate.txt"); // Using the File object so that we can get the length.
 
-        char[] buffer = new char[(int) templateFile.length()];
+        char[] buffer = new char[(int) templateFile.length()]; // Buffer to store the read characters.
 
-        java.io.FileInputStream fin = new java.io.FileInputStream(templateFile);
+        java.io.FileInputStream fin = new java.io.FileInputStream(templateFile); // Stream to read the file.
+        // Reader to read the file that is encoded with UTF-8 characters.
         java.io.InputStreamReader isr = new java.io.InputStreamReader(fin, "UTF-8");
 
-        isr.read(buffer);
-        isr.close();
+        isr.read(buffer); // Read the file into the buffer.
+        isr.close(); // Close the file.
 
+        // To allow us to convert the bytes into characters.
         StringBuilder sb = new StringBuilder((int) templateFile.length());
         sb.append(buffer);
 
-        this.calendarTemplate = sb.toString().toCharArray();
+        this.calendarTemplate = sb.toString().toCharArray(); // Convert into a string and then an array of chars.
 
         // Month template.
+        // Same processing as the Calendar Template.
         templateFile = new java.io.File("MonthTemplate.txt");
         buffer = new char[(int) templateFile.length()];
 
@@ -286,11 +303,20 @@ public class CalGen {
         this.monthTemplate = sb.toString().toCharArray();
     }
 
+    /**
+     * Process a token in the Calendar template.
+     * 
+     * @param currentIndex The current character in the calendar template.
+     * @return The updated position in the template after processing the token so that we can continue.
+     */
     private int processCalendarToken(int currentIndex) {
         int end = this.calendarTemplate.length;
         StringBuilder token = new StringBuilder();
+
+        // Extract the whole token until the end token characters are reached/
         while (currentIndex < end) {
-            if ((this.calendarTemplate[currentIndex] == this.mpost[0]) && (this.calendarTemplate[currentIndex + 1]) == this.mpost[1]) {
+            if ((this.calendarTemplate[currentIndex] == this.mpost[0]) &&
+                (this.calendarTemplate[currentIndex + 1]) == this.mpost[1]) {
                 // End token.
                 currentIndex = currentIndex + 2;
                 end = currentIndex; // Exit the loop.
@@ -300,53 +326,65 @@ public class CalGen {
                 currentIndex++;
             }
         }
-        this.processCalendarToken(token.toString());
+        this.processCalendarToken(token.toString()); // Process the token.
 
         return currentIndex;
     }
 
+    /**
+     * Process the extracted token. 
+     *
+     * @param token The token to process.
+     */
     private void processCalendarToken(String token) {
-        int dataIndex = token.indexOf('-');
+        int dataIndex = token.indexOf('-'); // Do we have 'parameter' data in the token?
         String data = null;
         String dataExtra = null;
         if (dataIndex != -1) {
-            // We have data.
+            // We have data, so extract it.
             data = token.substring(dataIndex + 1, token.length());
             token = token.substring(0, dataIndex);
 
-            int ampIndex = data.indexOf('&');
-            if (ampIndex != 1) {
+            int ampIndex = data.indexOf('&'); // Do we have a second parameter data in the token?
+            if (ampIndex != -1) {
                 dataExtra = data.substring(ampIndex + 1, data.length());
                 data = data.substring(0, ampIndex);
             }
         }
 
+        // Identify and execute the action of the token with its data if any.
         // Rule switch, Java 12 - https://blogs.oracle.com/javamagazine/post/new-switch-expressions-in-java-12
         switch (token) {
             case "calendartitle" -> this.markupOut.append(this.gc.get(Calendar.YEAR)).append(" Calendar");
-            case "jan" -> this.monthTemplate(0, data, dataExtra);
-            case "feb" -> this.monthTemplate(1, data, dataExtra);
-            case "mar" -> this.monthTemplate(2, data, dataExtra);
-            case "apr" -> this.monthTemplate(3, data, dataExtra);
-            case "may" -> this.monthTemplate(4, data, dataExtra);
-            case "jun" -> this.monthTemplate(5, data, dataExtra);
-            case "jul" -> this.monthTemplate(6, data, dataExtra);
-            case "aug" -> this.monthTemplate(7, data, dataExtra);
-            case "sep" -> this.monthTemplate(8, data, dataExtra);
-            case "oct" -> this.monthTemplate(9, data, dataExtra);
-            case "nov" -> this.monthTemplate(10, data, dataExtra);
-            case "dec" -> this.monthTemplate(11, data, dataExtra);
-            default -> this.markupOut.append("<p>Calendar error!</p>");
+            case "jan" -> this.monthTemplate(Calendar.JANUARY, data, dataExtra);
+            case "feb" -> this.monthTemplate(Calendar.FEBRUARY, data, dataExtra);
+            case "mar" -> this.monthTemplate(Calendar.MARCH, data, dataExtra);
+            case "apr" -> this.monthTemplate(Calendar.APRIL, data, dataExtra);
+            case "may" -> this.monthTemplate(Calendar.MAY, data, dataExtra);
+            case "jun" -> this.monthTemplate(Calendar.JUNE, data, dataExtra);
+            case "jul" -> this.monthTemplate(Calendar.JULY, data, dataExtra);
+            case "aug" -> this.monthTemplate(Calendar.AUGUST, data, dataExtra);
+            case "sep" -> this.monthTemplate(Calendar.SEPTEMBER, data, dataExtra);
+            case "oct" -> this.monthTemplate(Calendar.OCTOBER, data, dataExtra);
+            case "nov" -> this.monthTemplate(Calendar.NOVEMBER, data, dataExtra);
+            case "dec" -> this.monthTemplate(Calendar.DECEMBER, data, dataExtra);
+            default -> this.markupOut.append("<p>Calendar error!  Unknown token.</p>");
         }
     }
 
+    /**
+     * Execute a month token by processing the month template with the supplied parameters.
+     *
+     * @param theMonth The month.
+     * @param imageName The name of the image for the month.
+     * @param imageDescription The description of the image for the month.
+     */
     private void monthTemplate(int theMonth, String imageName, String imageDescription) {
-        this.gc.set(Calendar.MONTH, theMonth);
+        this.gc.set(Calendar.MONTH, theMonth); // Tell the calendar the month we want so that it tells us the correct days.
         this.previousMonth = theMonth;
         this.currentMonth = theMonth;
 
-        int currentIndex = 0;
-
+        int currentIndex = 0; // Current character in the month template.
         while (currentIndex < this.monthTemplate.length) {
             if ((this.monthTemplate[currentIndex] == this.mpre[0]) && (this.monthTemplate[currentIndex + 1]) == this.mpre[1]) {
                 // Start token.
@@ -360,6 +398,13 @@ public class CalGen {
         }
     }
 
+    /**
+     * Execute a month token.
+     *
+     * @param currentIndex The current character in the month template.
+     * @param imageName The name of the image for the month.
+     * @param imageDescription The description of the image for the month.
+     */
     private int processMonthToken(int currentIndex, String imageName, String imageDescription) {
         int end = this.monthTemplate.length;
         StringBuilder token = new StringBuilder();
@@ -379,6 +424,13 @@ public class CalGen {
         return currentIndex;
     }
 
+    /**
+     * Process a month token.
+     *
+     * @param token The month token.
+     * @param imageName The name of the image for the month.
+     * @param imageDescription The description of the image for the month.
+     */
     private void processMonthToken(String token, String imageName, String imageDescription) {
         int dataIndex = token.indexOf('-');
         String data = null;
@@ -394,15 +446,20 @@ public class CalGen {
             case "monthweek" -> this.monthWeek(data);
             case "monthimage" -> this.monthImage(imageName);
             case "monthimagedescription" -> this.monthImage(imageDescription);
-            default -> this.markupOut.append("<p>Month error!</p>");
+            default -> this.markupOut.append("<p>Month error!  Unknown token.</p>");
         }
     }
 
+    /**
+     * Put the month day in the markup output.
+     * @param data The token parameter, which is the wrapper html around the day text.
+     */
     private void monthDayNames(String data) {
-        int starIndex = data.indexOf('*');
-        String pre = data.substring(0, starIndex);
-        String post = data.substring(starIndex + 1, data.length());
+        int starIndex = data.indexOf('*'); // Where the day text should be placed in the wrapper markup.
+        String pre = data.substring(0, starIndex); // Wrapper opening tag.
+        String post = data.substring(starIndex + 1, data.length()); // Wrapper closing tag.
 
+        // Output the days of the week in the order that we have set.
         Iterator<Integer> daysIt = this.days.iterator();
         Integer current;
         while (daysIt.hasNext()) {
@@ -411,14 +468,32 @@ public class CalGen {
         }
     }
 
+    /**
+     * Output a day as an integer wrapped within the pre and post wrapper markup, the opening / closing tags.
+     *
+     * @param day The day.
+     * @param pre The opening wrapper tag.
+     * @param post The closing wrapper tag.
+     */
     private void monthDay(Integer day, String pre, String post) {
         this.monthDay(day.toString(), pre, post);
     }
 
+    /**
+     * Output a day as text wrapped within the pre and post wrapper markup, the opening / closing tags.
+     *
+     * @param day The day.
+     * @param pre The opening wrapper tag.
+     * @param post The closing wrapper tag.
+     */
     private void monthDay(String day, String pre, String post) {
         this.markupOut.append(pre).append(day).append(post);
     }
 
+    /**
+     * 
+     * @param data 
+     */
     private void monthWeek(String data) {
         int exlamationIndex = data.indexOf('!');
         int ampIndex = data.indexOf('&');
