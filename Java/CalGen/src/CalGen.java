@@ -3,8 +3,10 @@
  *
  * Generates the calendar for the year set, both as a HTML page from 'templated' and as text.
  *
- * @copyright  2022 G J Barnard
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Associated eLearningWorld post: TBC.
+ *
+ * @copyright  2022 G J Barnard.
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later.
  */
 
 import java.io.FileNotFoundException;
@@ -19,7 +21,7 @@ import java.util.LinkedList;
 /**
  * CalGen class.
  *
- * @author G J Barnard
+ * @author G J Barnard.
  */
 public class CalGen {
 
@@ -41,7 +43,6 @@ public class CalGen {
     private final StringBuffer markupOut = new StringBuffer(); // Stores the markup html as its being generated before it is output to the file.
 
     /**
-     *
      * Create the calendar and generate both the text and markup versions.
      *
      * @param args the command line arguments - not used.
@@ -79,7 +80,7 @@ public class CalGen {
         months.add(Calendar.OCTOBER);
         months.add(Calendar.NOVEMBER);
         months.add(Calendar.DECEMBER);
-        
+
         // Add the days in the order used by default in the GregorianCalendar.
         days.add(Calendar.SUNDAY);
         days.add(Calendar.MONDAY);
@@ -149,9 +150,9 @@ public class CalGen {
             current = daysIt.next();
             this.day(this.getDayText(current));
             if (daysIt.hasNext()) {
-                System.out.print(" ");            
+                System.out.print(" ");
             } else {
-                System.out.println();                
+                System.out.println();
             }
         }
 
@@ -174,7 +175,7 @@ public class CalGen {
 
         // Loop until we have reached the next month.
         while (this.currentMonth == this.previousMonth) {
-            
+
             // Loop through the day 'positions' as we have outputted them with the day names.
             while (currentPosition < 8) {
 
@@ -223,6 +224,7 @@ public class CalGen {
 
     /**
      * Output the day.
+     *
      * @param day As a string.
      */
     private void day(String day) {
@@ -305,7 +307,7 @@ public class CalGen {
 
     /**
      * Process a token in the Calendar template.
-     * 
+     *
      * @param currentIndex The current character in the calendar template.
      * @return The updated position in the template after processing the token so that we can continue.
      */
@@ -332,7 +334,7 @@ public class CalGen {
     }
 
     /**
-     * Process the extracted token. 
+     * Process the extracted token.
      *
      * @param token The token to process.
      */
@@ -452,6 +454,7 @@ public class CalGen {
 
     /**
      * Put the month day in the markup output.
+     *
      * @param data The token parameter, which is the wrapper html around the day text.
      */
     private void monthDayNames(String data) {
@@ -491,13 +494,14 @@ public class CalGen {
     }
 
     /**
-     * 
-     * @param data 
+     * Output the days in the month as weeks.
+     *
+     * @param data The week and day wrapper markup
      */
     private void monthWeek(String data) {
-        int exlamationIndex = data.indexOf('!');
-        int ampIndex = data.indexOf('&');
-        int starIndex = data.indexOf('*');
+        int exlamationIndex = data.indexOf('!'); // The position of the week within its wrapper markup.
+        int ampIndex = data.indexOf('&'); // The day parameter wrapper markup.
+        int starIndex = data.indexOf('*'); // The position of the day within its wrapper markup.
 
         String weekPre = data.substring(0, exlamationIndex);
         String weekPost = data.substring(exlamationIndex + 1, ampIndex);
@@ -508,6 +512,8 @@ public class CalGen {
         int currentPosition = 1;
         boolean startDayReached = false;
 
+        // Similar logic / structure to that of outputting the text, but this time we have to output the 'blank' days within the
+        // loop so that it is withing the wrapper markup for the week.
         while (this.currentMonth == this.previousMonth) {
             this.markupOut.append(weekPre);
 
@@ -515,7 +521,7 @@ public class CalGen {
                 Iterator<Integer> daysIt = this.days.iterator();
                 int monthStartPostion = this.gc.get(Calendar.DAY_OF_WEEK); // Day of the week that the month starts on.
                 Integer current;
-                
+
                 while (daysIt.hasNext() && (startDayReached == false)) {
                     current = daysIt.next();
                     if (current == monthStartPostion) {
@@ -528,7 +534,6 @@ public class CalGen {
             }
 
             while (currentPosition < 8) {
-
                 if (this.currentMonth != this.previousMonth) {
                     if (currentPosition != 1) {
                         while (currentPosition < 8) {
@@ -550,12 +555,23 @@ public class CalGen {
         }
     }
 
+    /**
+     * Output the image name / description in the place of its token, no wrapper here.
+     *
+     * @param text The text to use, if 'null' then don't output otherwise "null" will appear in the markup!
+     */
     private void monthImage(String text) {
         if (text != null) {
             this.markupOut.append(text);
         }
     }
 
+    /**
+     * Given the month as an number return its string representation.
+     *
+     * @param theMonth The month.
+     * @return The name of the month.
+     */
     private String getMonthText(int theMonth) {
         return switch (theMonth) {
             case Calendar.JANUARY -> "January";
@@ -574,6 +590,12 @@ public class CalGen {
         };
     }
 
+    /**
+     * Given the day as an number return its string representation.
+     *
+     * @param theDay The day.
+     * @return The name of the day.
+     */
     private String getDayText (int theDay) {
         return switch (theDay) {
             case Calendar.SUNDAY -> "Sun";
