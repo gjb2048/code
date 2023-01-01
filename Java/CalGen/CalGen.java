@@ -187,7 +187,7 @@ public class CalGen {
             } else {
                 currentPosition++;
                 this.day("");
-                System.out.print(" -! ");
+                System.out.print("    ");
             }
         }
 
@@ -204,7 +204,7 @@ public class CalGen {
                         // Loop through the remaining positions and output 'blank' days.
                         while (currentPosition < 8) {
                             this.day("");
-                            System.out.print(" -* ");
+                            System.out.print("    ");
                             currentPosition++;
                         }
                     }
