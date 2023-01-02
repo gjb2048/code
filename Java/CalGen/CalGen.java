@@ -3,7 +3,7 @@
  *
  * Generates the calendar for the year set, both as a HTML page from 'templated' and as text.
  *
- * Associated eLearningWorld post: TBC.
+ * Associated eLearningWorld post: https://www.elearningworld.org/?p=15762.
  *
  * Copyright (C) 2022 G J Barnard.
  *
@@ -41,7 +41,7 @@ public class CalGen {
 
     // Calendar attributes.
     private final GregorianCalendar gc = new GregorianCalendar(); // The calenadar.
-    private final LinkedList<Integer> months = new LinkedList<>(); // The days of the week.
+    private final LinkedList<Integer> months = new LinkedList<>(); // The months of the year.
     private final LinkedList<Integer> days = new LinkedList<>(); // The days of the week.
     private int currentMonth; // Keep track of the current month between methods.
     private int previousMonth; // Keep track of the previous month between methods.
@@ -585,7 +585,7 @@ public class CalGen {
     }
 
     /**
-     * Given the month as an number return its string representation.
+     * Given the month as a number return its string representation.
      *
      * @param theMonth The month.
      * @return The name of the month.
@@ -609,7 +609,7 @@ public class CalGen {
     }
 
     /**
-     * Given the day as an number return its string representation.
+     * Given the day as a number return its string representation.
      *
      * @param theDay The day.
      * @return The name of the day.
