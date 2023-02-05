@@ -20,6 +20,7 @@ public class Flipper {
     private InputStreamReader isr = null; // Stream to get the key presses from the keyboard.
     private BufferedReader br = null; // Buffer to store the pressed keys from the input stream.
     private HashMap<Character, Character> map = null; // Map to store the character to character relationship.
+    private String[] ourArgs = null;
 
     private static final boolean DEBUG = false; // Show the debug messages.  Static so recompile when change.
     private static final int DIFFERENCE = 4; // How many characters to 'shift to the left' the characters we flip.
@@ -35,6 +36,10 @@ public class Flipper {
     public static void main(String args[]) {
         Flipper us = new Flipper(); // Instantiate our class.
 
+        if (args.length > 1) {
+            us.checkArgs(args);
+        }
+
         System.out.println("Flipped: " + us.flip("Flip   : ")); // Flip with the before and after string prefixes.
     }
 
@@ -42,9 +47,6 @@ public class Flipper {
      * Constructor to setup the input and create the character code map.
      */
     public Flipper() {
-        this.isr = new InputStreamReader(System.in); // Attach a stream to the system input.
-        this.br = new BufferedReader(this.isr); // Attach a buffer to store the pressed keys.
-
         // Convert the string to characters we can access via an array index with a number.
         char[] lowerChars = LOWER.toCharArray();
         char[] upperChars = UPPER.toCharArray();
@@ -107,23 +109,41 @@ public class Flipper {
         }
     }
 
+    private boolean checkArgs(String args[]) {
+        /*for (String var: args ) {
+            this.ourArgs[] = 
+        }*/
+        
+        this.ourArgs = args.clone();
+        
+        return true;
+    }
+
     /**
      * Flip the entered text.
      * @param message What to show as the input question.
      * @return 
      */
     private String flip(String message) {
+        String input;
+
         System.out.print(message);
 
-        // Using a 'try / catch' block as reading key presses is an input output operation that can fail.
-        String input;
-        try {
-            input = br.readLine(); // Read a line of text from the user.
-        } catch (java.io.IOException ioe) { // An error has happened when getting the text from the user.
-            // Tell the user what the error is.
-            System.out.println(); // New line after the message.
-            this.processError(ioe);
-            return ("");
+        if (this.ourArgs == null) {
+            this.isr = new InputStreamReader(System.in); // Attach a stream to the system input.
+            this.br = new BufferedReader(this.isr); // Attach a buffer to store the pressed keys.
+
+            // Using a 'try / catch' block as reading key presses is an input output operation that can fail.
+            try {
+                input = br.readLine(); // Read a line of text from the user.
+            } catch (java.io.IOException ioe) { // An error has happened when getting the text from the user.
+                // Tell the user what the error is.
+                System.out.println(); // New line after the message.
+                this.processError(ioe);
+                return ("");
+            }
+        } else {
+            input = this.ourArgs[1];
         }
 
         /* Using a 'try / catch' block as pressing 'Ctrl-C' during input caused the 'input' to be null and
