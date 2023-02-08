@@ -167,7 +167,7 @@ public class Flipper {
         System.out.println("Usage: ");
         System.out.println("java Flipper [arguments] [text to flip or leave empty to be asked]");
         System.out.println("Optional arguments:");
-        System.out.println("-number The difference.");
+        System.out.println("-[number] The difference.");
         System.out.println("-d Turn on debugging.");
         System.out.println("-? Show This help.");
     }
